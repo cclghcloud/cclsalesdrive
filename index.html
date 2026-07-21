@@ -111,10 +111,29 @@ tr:last-child td { border-bottom: none; }
 .focus-card { background: linear-gradient(135deg, #fff9e6, #fffdf5); border: 1px solid #ffe9a8; }
 .badge-type-note { background: #ece9fe; color: #6d5efc; }
 .history-empty-hint { font-size: 12px; color: #a3a1b5; margin-top: 4px; }
+.login-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #1c1b2e, #322f52); }
+.login-card { background: #fff; border-radius: 12px; padding: 2.5rem; width: 340px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
+.login-logo { font-size: 20px; font-weight: 700; color: #1c1b2e; margin-bottom: 1.5rem; text-align: center; }
+.login-tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; background: #f1f1f5; border-radius: 8px; padding: 4px; }
+.login-tab { flex: 1; text-align: center; padding: 0.5rem; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #6b6880; }
+.login-tab.active { background: #fff; color: #1c1b2e; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 </style>
 </head>
 <body>
-<div class="container">
+<div id="loginScreen" class="login-screen">
+<div class="login-card">
+<div class="login-logo">SalesPipe</div>
+<div class="login-tabs">
+<div class="login-tab active" id="loginTabSignIn" onclick="switchAuthTab('signin')">Sign In</div>
+<div class="login-tab" id="loginTabSignUp" onclick="switchAuthTab('signup')">Create Account</div>
+</div>
+<div id="authFormMsg" class="status-msg"></div>
+<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="authEmail" type="email"></div>
+<div class="form-group"><label class="form-label">Password</label><input class="form-input" id="authPassword" type="password"></div>
+<button class="btn" id="authSubmitBtn" data-mode="signin" onclick="submitAuth()" style="width: 100%;">Sign In</button>
+</div>
+</div>
+<div class="container" id="appRoot" style="display: none;">
 <div class="sidebar">
 <div class="logo">SalesPipe</div>
 <div class="nav-item active" onclick="switchView('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>Dashboard</div>
@@ -130,7 +149,11 @@ tr:last-child td { border-bottom: none; }
 <div class="main">
 <div class="header">
 <h2 id="viewTitle">Sales Pipeline</h2>
+<div style="display: flex; align-items: center; gap: 12px;">
+<span id="headerUserInfo" style="font-size: 12px; color: #8b899e;"></span>
 <button class="btn" id="newBtn" onclick="openModal('dealModal')">+ New Deal</button>
+<button class="btn btn-secondary" onclick="signOut()">Sign Out</button>
+</div>
 </div>
 
 <div class="content">
@@ -149,7 +172,7 @@ tr:last-child td { border-bottom: none; }
 </div>
 <div class="table-wrapper">
 <table>
-<thead><tr><th>Deal Title</th><th>Person</th><th>Organization</th><th>Stage</th><th>Value</th><th>Owner</th><th>Actions</th></tr></thead>
+<thead><tr><th>Deal Title</th><th>Person</th><th>Organization</th><th>Stage</th><th>Value</th><th>Owner</th><th>Assigned To</th><th>Actions</th></tr></thead>
 <tbody id="dealsTable"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
 </table>
 </div>
@@ -258,6 +281,7 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-field"><strong>Stage:</strong><span id="ddStage"></span></div>
 <div class="detail-field"><strong>Value:</strong><span id="ddValue"></span></div>
 <div class="detail-field"><strong>Owner:</strong><span id="ddOwner"></span></div>
+<div class="detail-field"><strong>Assigned To:</strong><span id="ddAssignedTo"></span></div>
 <div class="detail-field"><strong>Person:</strong><span id="ddPerson"></span></div>
 <div class="detail-field"><strong>Organization:</strong><span id="ddOrg"></span></div>
 <div class="detail-field"><strong>Email:</strong><span id="ddEmail"></span></div>
@@ -339,6 +363,7 @@ tr:last-child td { border-bottom: none; }
 </select></div>
 <div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="dealValue" type="number"></div>
 <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="dealOwner"></div>
+<div class="form-group admin-only" id="dealAssignWrap" style="display:none;"><label class="form-label">Assign To</label><select class="form-select" id="dealAssignTo"><option value="">Unassigned</option></select></div>
 <div class="form-actions">
 <button class="btn" onclick="submitDeal()">Save Deal</button>
 <button class="btn btn-secondary" onclick="closeModal('dealModal')">Cancel</button>
@@ -359,6 +384,7 @@ tr:last-child td { border-bottom: none; }
 </select></div>
 <div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="editDealValue" type="number"></div>
 <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="editDealOwner"></div>
+<div class="form-group admin-only" id="editDealAssignWrap" style="display:none;"><label class="form-label">Assign To</label><select class="form-select" id="editDealAssignTo"><option value="">Unassigned</option></select></div>
 <div class="form-actions">
 <button class="btn" onclick="submitEditDeal()">Save Changes</button>
 <button class="btn btn-secondary" onclick="closeModal('editDealModal')">Cancel</button>
@@ -411,16 +437,162 @@ tr:last-child td { border-bottom: none; }
 <script>
 const SUPABASE_URL = "https://kjnttyhcnyxbawraecgr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_7fzr20aFzcqERrVAZaBI0A_7F5e-Jvt";
-const HEADERS = { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY };
+let authSession = null;
+let currentProfile = null;
+
+function getAuthHeaders() {
+  var token = (authSession && authSession.access_token) || SUPABASE_KEY;
+  return { apikey: SUPABASE_KEY, Authorization: "Bearer " + token };
+}
 
 let dealsPage = 0, contactsPage = 0;
 const PAGE_SIZE = 25;
 
 async function sb(path, opts) {
   opts = opts || {};
-  opts.headers = Object.assign({}, HEADERS, opts.headers || {});
+  opts.headers = Object.assign({}, getAuthHeaders(), opts.headers || {});
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, opts);
   return res;
+}
+
+function saveSession(data) {
+  authSession = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + ((data.expires_in || 3600) * 1000),
+    user: data.user
+  };
+  localStorage.setItem("sp_session", JSON.stringify(authSession));
+}
+
+function loadStoredSession() {
+  var raw = localStorage.getItem("sp_session");
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch (e) { return null; }
+}
+
+function clearSession() {
+  authSession = null;
+  currentProfile = null;
+  localStorage.removeItem("sp_session");
+}
+
+async function refreshSession() {
+  if (!authSession || !authSession.refresh_token) return false;
+  const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: authSession.refresh_token })
+  });
+  if (!res.ok) return false;
+  const data = await res.json();
+  saveSession(data);
+  return true;
+}
+
+async function loadCurrentProfile() {
+  const res = await sb("profiles?id=eq." + authSession.user.id + "&select=id,email,role");
+  const rows = await res.json();
+  currentProfile = rows[0] || null;
+  window.currentProfile = currentProfile;
+}
+
+async function initApp() {
+  authSession = loadStoredSession();
+  if (authSession && authSession.expires_at < Date.now() + 60000) {
+    const ok = await refreshSession();
+    if (!ok) clearSession();
+  }
+  if (authSession) {
+    await loadCurrentProfile();
+    if (!currentProfile) clearSession();
+  }
+  if (authSession && currentProfile) {
+    showApp();
+  } else {
+    showLogin();
+  }
+}
+
+function showLogin() {
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("appRoot").style.display = "none";
+}
+
+async function showApp() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appRoot").style.display = "flex";
+  document.getElementById("headerUserInfo").textContent = currentProfile.email + " (" + currentProfile.role + ")";
+  var isAdmin = currentProfile.role === "admin";
+  document.querySelectorAll(".admin-only").forEach(function (el) { el.style.display = isAdmin ? "" : "none"; });
+  if (isAdmin) { populateAssigneeDropdowns(); }
+  loadDashboard();
+}
+
+function signOut() {
+  clearSession();
+  showLogin();
+}
+
+function switchAuthTab(tab) {
+  var isSignIn = tab === "signin";
+  document.getElementById("loginTabSignIn").classList.toggle("active", isSignIn);
+  document.getElementById("loginTabSignUp").classList.toggle("active", !isSignIn);
+  document.getElementById("authSubmitBtn").textContent = isSignIn ? "Sign In" : "Create Account";
+  document.getElementById("authSubmitBtn").setAttribute("data-mode", tab);
+  document.getElementById("authFormMsg").textContent = "";
+}
+
+async function submitAuth() {
+  var mode = document.getElementById("authSubmitBtn").getAttribute("data-mode") || "signin";
+  var email = document.getElementById("authEmail").value.trim();
+  var password = document.getElementById("authPassword").value;
+  var msg = document.getElementById("authFormMsg");
+  if (!email || !password) { msg.textContent = "Email and password are required."; return; }
+  msg.textContent = mode === "signin" ? "Signing in..." : "Creating account...";
+  try {
+    if (mode === "signin") {
+      const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+        method: "POST",
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, password: password })
+      });
+      const data = await res.json();
+      if (!res.ok) { msg.textContent = data.error_description || data.msg || "Sign in failed."; return; }
+      saveSession(data);
+      await loadCurrentProfile();
+      if (!currentProfile) { msg.textContent = "Account has no profile yet. Contact an admin."; return; }
+      showApp();
+    } else {
+      const res = await fetch(SUPABASE_URL + "/auth/v1/signup", {
+        method: "POST",
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, password: password })
+      });
+      const data = await res.json();
+      if (!res.ok) { msg.textContent = data.error_description || data.msg || "Sign up failed."; return; }
+      if (data.access_token) {
+        saveSession(data);
+        await loadCurrentProfile();
+        showApp();
+      } else {
+        msg.textContent = "Account created. Please check your email to confirm, then sign in.";
+        switchAuthTab("signin");
+      }
+    }
+  } catch (e) {
+    msg.textContent = "Something went wrong. Please try again.";
+  }
+}
+
+async function populateAssigneeDropdowns() {
+  const res = await sb("profiles?select=id,email&order=email.asc");
+  const rows = await res.json();
+  const opts = '<option value="">Unassigned</option>' + rows.map(function (p) { return '<option value="' + p.id + '">' + escapeHtml(p.email) + '</option>'; }).join("");
+  ["dealAssignTo", "editDealAssignTo"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { var cur = el.value; el.innerHTML = opts; el.value = cur; }
+  });
 }
 
 function switchView(view) {
@@ -517,8 +689,8 @@ async function loadDeals() {
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : rows.length;
   document.getElementById("dealsTable").innerHTML = rows.map(function(d) {
-    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + stageBadge(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openDealDetail(" + d.id + ")\">View</button> <button class=\"btn btn-secondary btn-small\" onclick=\"openEditDeal(" + d.id + ")\">Edit</button></td></tr>";
-  }).join("") || '<tr><td colspan="6" class="empty-state">No deals found</td></tr>';
+    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + stageBadge(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td><td>" + ((d.profiles && d.profiles.email) ? escapeHtml(d.profiles.email) : "Unassigned") + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openDealDetail(" + d.id + ")\">View</button> <button class=\"btn btn-secondary btn-small\" onclick=\"openEditDeal(" + d.id + ")\">Edit</button></td></tr>";
+  }).join("") || '<tr><td colspan="8" class="empty-state">No deals found</td></tr>';
   renderPagination("dealsPagination", dealsPage, total, function(p){ dealsPage = p; loadDeals(); });
 }
 
@@ -566,13 +738,14 @@ async function submitDeal() {
     organization_name: document.getElementById("dealOrg").value.trim() || null,
     pipeline_stage: document.getElementById("dealStage").value,
     deal_value: parseFloat(document.getElementById("dealValue").value) || null,
-    deal_owner: document.getElementById("dealOwner").value.trim() || null
+    deal_owner: document.getElementById("dealOwner").value.trim() || null,
+    assigned_to: (window.currentProfile && currentProfile.role === "admin") ? (document.getElementById("dealAssignTo").value || null) : (window.currentProfile ? currentProfile.id : null)
   };
   msg.textContent = "Saving...";
   const res = await sb("deals", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
   if (res.ok) {
     closeModal("dealModal");
-    ["dealTitle","dealPerson","dealOrg","dealValue","dealOwner"].forEach(function(id){ document.getElementById(id).value = ""; });
+    ["dealTitle","dealPerson","dealOrg","dealValue","dealOwner","dealAssignTo"].forEach(function(id){ document.getElementById(id).value = ""; });
     msg.textContent = "";
     loadDashboard();
     if (document.getElementById("deals").classList.contains("active")) loadDeals();
@@ -585,7 +758,7 @@ let editingDealId = null;
 
 async function openEditDeal(id) {
   editingDealId = id;
-  const res = await sb("deals?id=eq." + id + "&select=id,deal_title,person_name,organization_name,pipeline_stage,deal_value,deal_owner");
+  const res = await sb("deals?id=eq." + id + "&select=id,deal_title,person_name,organization_name,pipeline_stage,deal_value,deal_owner,assigned_to");
   const rows = await res.json();
   if (!rows.length) return;
   const d = rows[0];
@@ -595,6 +768,7 @@ async function openEditDeal(id) {
   document.getElementById("editDealStage").value = d.pipeline_stage || "Lead";
   document.getElementById("editDealValue").value = d.deal_value != null ? d.deal_value : "";
   document.getElementById("editDealOwner").value = d.deal_owner || "";
+  if (document.getElementById("editDealAssignTo")) { document.getElementById("editDealAssignTo").value = d.assigned_to || ""; }
   document.getElementById("editDealFormMsg").textContent = "";
   openModal("editDealModal");
 }
@@ -609,8 +783,10 @@ async function submitEditDeal() {
     organization_name: document.getElementById("editDealOrg").value.trim() || null,
     pipeline_stage: document.getElementById("editDealStage").value,
     deal_value: parseFloat(document.getElementById("editDealValue").value) || null,
-    deal_owner: document.getElementById("editDealOwner").value.trim() || null
+    deal_owner: document.getElementById("editDealOwner").value.trim() || null,
+    assigned_to: (window.currentProfile && currentProfile.role === "admin") ? (document.getElementById("editDealAssignTo").value || null) : undefined
   };
+  if (payload.assigned_to === undefined) delete payload.assigned_to;
   msg.textContent = "Saving...";
   const res = await sb("deals?id=eq." + editingDealId, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
   if (res.ok) {
@@ -802,7 +978,7 @@ async function openDealDetail(id) {
   if (ddhf) { Array.from(ddhf.children).forEach(function(c,i){ c.classList.toggle("active", i===0); }); }
   showDetail("dealDetail");
   document.getElementById("viewTitle").textContent = "Deal Details";
-  const res = await sb("deals?id=eq." + id + "&select=*");
+  const res = await sb("deals?id=eq." + id + "&select=*,profiles(email)");
   const rows = await res.json();
   if (!rows.length) return;
   const d = rows[0];
@@ -812,6 +988,7 @@ async function openDealDetail(id) {
   document.getElementById("ddAvatar").textContent = initials(d.person_name || d.deal_title);
   document.getElementById("ddValue").textContent = fmtMoney(d.deal_value);
   document.getElementById("ddOwner").textContent = d.deal_owner || dash;
+  document.getElementById("ddAssignedTo").textContent = (d.profiles && d.profiles.email) || "Unassigned";
   document.getElementById("ddPerson").textContent = d.person_name || dash;
   document.getElementById("ddOrg").textContent = d.organization_name || dash;
   document.getElementById("ddEmail").textContent = d.email || dash;
@@ -982,7 +1159,7 @@ function downloadBlob(content, filename, type) {
   a.href = url; a.download = filename; a.click();
 }
 
-loadDashboard();
+initApp();
 </script>
 </body>
 </html>
