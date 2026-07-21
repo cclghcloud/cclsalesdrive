@@ -102,6 +102,15 @@ tr:last-child td { border-bottom: none; }
 .badge-type-task { background: #dcfce7; color: #15803d; }
 .badge-type-file { background: #f3e8ff; color: #9333ea; }
 .badge-type-changelog { background: #f1f5f9; color: #64748b; }
+.detail-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.25rem; align-items: start; }
+.detail-col-left, .detail-col-right { display: flex; flex-direction: column; gap: 1.25rem; }
+@media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } }
+.quick-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.quick-tab { padding: 0.5rem 1.1rem; border-radius: 8px; background: #f5f4fa; color: #6b6880; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s; }
+.quick-tab.active { background: #6d5efc; color: #fff; }
+.focus-card { background: linear-gradient(135deg, #fff9e6, #fffdf5); border: 1px solid #ffe9a8; }
+.badge-type-note { background: #ece9fe; color: #6d5efc; }
+.history-empty-hint { font-size: 12px; color: #a3a1b5; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -179,6 +188,8 @@ tr:last-child td { border-bottom: none; }
 
 <div class="view-section" id="contactDetail">
 <button class="btn btn-secondary" onclick="backToList('contacts')" style="margin-bottom: 1rem;">&larr; Back to Contacts</button>
+<div class="detail-grid">
+<div class="detail-col-left">
 <div class="detail-card">
 <div class="detail-profile"><div class="avatar" id="cdAvatar">?</div><div><h2 id="cdName"></h2></div></div>
 <div class="detail-field"><strong>Email:</strong><span id="cdEmail"></span></div>
@@ -189,17 +200,18 @@ tr:last-child td { border-bottom: none; }
 <h3 style="margin-top: 0;">Related Deals</h3>
 <div id="cdDeals" class="related-list"><p class="empty-state">Loading...</p></div>
 </div>
+</div>
+<div class="detail-col-right">
 <div class="detail-card">
-<div class="tabs">
-<div class="tab active" onclick="switchDetailTab('contact','notes')">Notes</div>
-<div class="tab" onclick="switchDetailTab('contact','activities')">Activities</div>
+<div class="quick-tabs">
+<div class="quick-tab active" onclick="switchDetailTab('contact','notes')">Note</div>
+<div class="quick-tab" onclick="switchDetailTab('contact','activities')">Activity</div>
 </div>
 <div id="cdNotesPane">
 <div class="add-row">
 <textarea class="form-input" id="cdNoteInput" placeholder="Write a note..." rows="2"></textarea>
 <button class="btn" onclick="addContactNote()">Add Note</button>
 </div>
-<div id="cdNotesList"></div>
 </div>
 <div id="cdActivitiesPane" style="display: none;">
 <div class="add-row activity-add-row">
@@ -208,14 +220,32 @@ tr:last-child td { border-bottom: none; }
 <input class="form-input" id="cdActDue" type="date">
 <button class="btn" onclick="addContactActivity()">Log Activity</button>
 </div>
-<div class="activity-filter" id="cdActivityFilter"><span class="filter-pill active" onclick="filterActivities('contact','All', this)">All</span><span class="filter-pill" onclick="filterActivities('contact','Call', this)">Calls</span><span class="filter-pill" onclick="filterActivities('contact','Email', this)">Emails</span><span class="filter-pill" onclick="filterActivities('contact','Meeting', this)">Meetings</span><span class="filter-pill" onclick="filterActivities('contact','Task', this)">Tasks</span><span class="filter-pill" onclick="filterActivities('contact','File', this)">Files</span><span class="filter-pill" onclick="filterActivities('contact','Changelog', this)">Changelog</span></div>
-<div id="cdActivitiesList"></div>
+</div>
+</div>
+<div class="detail-card focus-card">
+<h3 style="margin-top: 0;">Focus</h3>
+<div id="cdFocus"><p class="empty-state">Nothing yet</p></div>
+</div>
+<div class="detail-card">
+<h3 style="margin-top: 0;">History</h3>
+<div class="activity-filter" id="cdHistoryFilter">
+<span class="filter-pill active" onclick="filterHistory('contact','All', this)">All</span>
+<span class="filter-pill" onclick="filterHistory('contact','Notes', this)">Notes</span>
+<span class="filter-pill" onclick="filterHistory('contact','Activities', this)">Activities</span>
+<span class="filter-pill" onclick="filterHistory('contact','Email', this)">Emails</span>
+<span class="filter-pill" onclick="filterHistory('contact','File', this)">Files</span>
+<span class="filter-pill" onclick="filterHistory('contact','Changelog', this)">Changelog</span>
+</div>
+<div id="cdHistoryList"><p class="empty-state">Loading...</p></div>
+</div>
 </div>
 </div>
 </div>
 
 <div class="view-section" id="dealDetail">
 <button class="btn btn-secondary" onclick="backToList('deals')" style="margin-bottom: 1rem;">&larr; Back to Deals</button>
+<div class="detail-grid">
+<div class="detail-col-left">
 <div class="detail-card">
 <div class="detail-profile"><div class="avatar" id="ddAvatar">?</div><div><h2 id="ddTitle"></h2></div></div>
 <div class="detail-field"><strong>Stage:</strong><span id="ddStage"></span></div>
@@ -231,17 +261,18 @@ tr:last-child td { border-bottom: none; }
 <h3 style="margin-top: 0;">Related Contact</h3>
 <div id="ddContact" class="related-list"><p class="empty-state">Loading...</p></div>
 </div>
+</div>
+<div class="detail-col-right">
 <div class="detail-card">
-<div class="tabs">
-<div class="tab active" onclick="switchDetailTab('deal','notes')">Notes</div>
-<div class="tab" onclick="switchDetailTab('deal','activities')">Activities</div>
+<div class="quick-tabs">
+<div class="quick-tab active" onclick="switchDetailTab('deal','notes')">Note</div>
+<div class="quick-tab" onclick="switchDetailTab('deal','activities')">Activity</div>
 </div>
 <div id="ddNotesPane">
 <div class="add-row">
 <textarea class="form-input" id="ddNoteInput" placeholder="Write a note..." rows="2"></textarea>
 <button class="btn" onclick="addDealNote()">Add Note</button>
 </div>
-<div id="ddNotesList"></div>
 </div>
 <div id="ddActivitiesPane" style="display: none;">
 <div class="add-row activity-add-row">
@@ -250,8 +281,24 @@ tr:last-child td { border-bottom: none; }
 <input class="form-input" id="ddActDue" type="date">
 <button class="btn" onclick="addDealActivity()">Log Activity</button>
 </div>
-<div class="activity-filter" id="ddActivityFilter"><span class="filter-pill active" onclick="filterActivities('deal','All', this)">All</span><span class="filter-pill" onclick="filterActivities('deal','Call', this)">Calls</span><span class="filter-pill" onclick="filterActivities('deal','Email', this)">Emails</span><span class="filter-pill" onclick="filterActivities('deal','Meeting', this)">Meetings</span><span class="filter-pill" onclick="filterActivities('deal','Task', this)">Tasks</span><span class="filter-pill" onclick="filterActivities('deal','File', this)">Files</span><span class="filter-pill" onclick="filterActivities('deal','Changelog', this)">Changelog</span></div>
-<div id="ddActivitiesList"></div>
+</div>
+</div>
+<div class="detail-card focus-card">
+<h3 style="margin-top: 0;">Focus</h3>
+<div id="ddFocus"><p class="empty-state">Nothing yet</p></div>
+</div>
+<div class="detail-card">
+<h3 style="margin-top: 0;">History</h3>
+<div class="activity-filter" id="ddHistoryFilter">
+<span class="filter-pill active" onclick="filterHistory('deal','All', this)">All</span>
+<span class="filter-pill" onclick="filterHistory('deal','Notes', this)">Notes</span>
+<span class="filter-pill" onclick="filterHistory('deal','Activities', this)">Activities</span>
+<span class="filter-pill" onclick="filterHistory('deal','Email', this)">Emails</span>
+<span class="filter-pill" onclick="filterHistory('deal','File', this)">Files</span>
+<span class="filter-pill" onclick="filterHistory('deal','Changelog', this)">Changelog</span>
+</div>
+<div id="ddHistoryList"><p class="empty-state">Loading...</p></div>
+</div>
 </div>
 </div>
 </div>
@@ -575,6 +622,54 @@ function renderNote(n) {
   const d = new Date(n.created_at);
   return '<div class="note-item"><div class="note-meta">' + escapeHtml(n.author || "You") + ' &middot; ' + d.toLocaleString() + '</div><div>' + escapeHtml(n.body) + '</div></div>';
 }
+function combineHistory(prefix) {
+  const notes = (prefix === "cd" ? window.cdNotesData : window.ddNotesData) || [];
+  const activities = (prefix === "cd" ? window.cdActivitiesData : window.ddActivitiesData) || [];
+  const merged = notes.map(function(n){ const o = Object.assign({}, n); o.__kind = "note"; return o; })
+    .concat(activities.map(function(a){ const o = Object.assign({}, a); o.__kind = "activity"; return o; }));
+  merged.sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
+  return merged;
+}
+function renderHistoryItem(item) {
+  if (item.__kind === "note") {
+    const d = new Date(item.created_at);
+    return '<div class="activity-item type-note"><span class="badge badge-type-note">NOTE</span><span>' + escapeHtml(item.body) + '</span><span>' + d.toLocaleDateString() + '</span></div>';
+  }
+  return renderActivity(item);
+}
+function historyCategoryMatch(item, category) {
+  if (category === "All") return true;
+  if (category === "Notes") return item.__kind === "note";
+  if (category === "Activities") return item.__kind === "activity" && ["Call","Meeting","Task"].indexOf(item.activity_type) !== -1;
+  if (category === "Email") return item.__kind === "activity" && item.activity_type === "Email";
+  if (category === "File") return item.__kind === "activity" && item.activity_type === "File";
+  if (category === "Changelog") return item.__kind === "activity" && item.activity_type === "Changelog";
+  return true;
+}
+function renderFocus(prefix, mergedIn) {
+  const merged = mergedIn || combineHistory(prefix);
+  const el = document.getElementById(prefix + "Focus");
+  if (!el) return;
+  if (!merged.length) { el.innerHTML = '<p class="empty-state">Nothing yet</p>'; return; }
+  el.innerHTML = renderHistoryItem(merged[0]);
+}
+function renderHistoryList(prefix) {
+  const merged = combineHistory(prefix);
+  const filter = (prefix === "cd" ? window.cdHistoryFilterVal : window.ddHistoryFilterVal) || "All";
+  const filtered = merged.filter(function(item){ return historyCategoryMatch(item, filter); });
+  const listEl = document.getElementById(prefix + "HistoryList");
+  if (listEl) { listEl.innerHTML = filtered.map(renderHistoryItem).join("") || '<p class="empty-state">No history yet</p>'; }
+  renderFocus(prefix, merged);
+}
+function filterHistory(scope, category, el) {
+  const prefix = scope === "contact" ? "cd" : "dd";
+  if (prefix === "cd") { window.cdHistoryFilterVal = category; } else { window.ddHistoryFilterVal = category; }
+  const container = el.parentElement;
+  Array.from(container.children).forEach(function(c){ c.classList.remove("active"); });
+  el.classList.add("active");
+  renderHistoryList(prefix);
+}
+
 function activityTypeClass(type) {
   const key = (type || "").toLowerCase();
   const map = { call: "badge-type-call", email: "badge-type-email", meeting: "badge-type-meeting", task: "badge-type-task", file: "badge-type-file", changelog: "badge-type-changelog" };
@@ -602,6 +697,11 @@ function filterActivities(scope, type, el) {
 async function openContactDetail(id) {
   currentContactId = id;
   window.cdActivityFilterVal = "All";
+  window.cdHistoryFilterVal = "All";
+  window.cdNotesData = [];
+  window.cdActivitiesData = [];
+  var cdhf = document.getElementById("cdHistoryFilter");
+  if (cdhf) { Array.from(cdhf.children).forEach(function(c,i){ c.classList.toggle("active", i===0); }); }
   showDetail("contactDetail");
   document.getElementById("viewTitle").textContent = "Contact Details";
   const res = await sb("contacts?id=eq." + id + "&select=*");
@@ -634,13 +734,14 @@ async function openContactDetail(id) {
 async function loadContactNotes(id) {
   const res = await sb("notes?contact_id=eq." + id + "&order=created_at.desc");
   const rows = await res.json();
-  document.getElementById("cdNotesList").innerHTML = rows.map(renderNote).join("") || '<p class="empty-state">No notes yet</p>';
+  window.cdNotesData = rows;
+  renderHistoryList("cd");
 }
 async function loadContactActivities(id) {
   const res = await sb("activities?contact_id=eq." + id + "&order=created_at.desc");
   const rows = await res.json();
   window.cdActivitiesData = rows;
-  renderActivitiesList("cd");
+  renderHistoryList("cd");
 }
 async function addContactNote() {
   const body = document.getElementById("cdNoteInput").value.trim();
@@ -662,6 +763,11 @@ async function addContactActivity() {
 async function openDealDetail(id) {
   currentDealId = id;
   window.ddActivityFilterVal = "All";
+  window.ddHistoryFilterVal = "All";
+  window.ddNotesData = [];
+  window.ddActivitiesData = [];
+  var ddhf = document.getElementById("ddHistoryFilter");
+  if (ddhf) { Array.from(ddhf.children).forEach(function(c,i){ c.classList.toggle("active", i===0); }); }
   showDetail("dealDetail");
   document.getElementById("viewTitle").textContent = "Deal Details";
   const res = await sb("deals?id=eq." + id + "&select=*");
@@ -699,13 +805,14 @@ async function openDealDetail(id) {
 async function loadDealNotes(id) {
   const res = await sb("notes?deal_id=eq." + id + "&order=created_at.desc");
   const rows = await res.json();
-  document.getElementById("ddNotesList").innerHTML = rows.map(renderNote).join("") || '<p class="empty-state">No notes yet</p>';
+  window.ddNotesData = rows;
+  renderHistoryList("dd");
 }
 async function loadDealActivities(id) {
   const res = await sb("activities?deal_id=eq." + id + "&order=created_at.desc");
   const rows = await res.json();
   window.ddActivitiesData = rows;
-  renderActivitiesList("dd");
+  renderHistoryList("dd");
 }
 async function addDealNote() {
   const body = document.getElementById("ddNoteInput").value.trim();
