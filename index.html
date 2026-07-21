@@ -192,9 +192,19 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-col-left">
 <div class="detail-card">
 <div class="detail-profile"><div class="avatar" id="cdAvatar">?</div><div><h2 id="cdName"></h2></div></div>
+<button class="btn btn-secondary btn-small" onclick="openEditContact(currentContactId)" style="margin-bottom: 0.75rem;">Edit Contact</button>
 <div class="detail-field"><strong>Email:</strong><span id="cdEmail"></span></div>
 <div class="detail-field"><strong>Phone:</strong><span id="cdPhone"></span></div>
 <div class="detail-field"><strong>Organization:</strong><span id="cdOrg"></span></div>
+</div>
+<div class="detail-card">
+<h3 style="margin-top: 0;">Details</h3>
+<div class="detail-field"><strong>First Name:</strong><span id="cdFirstName"></span></div>
+<div class="detail-field"><strong>Last Name:</strong><span id="cdLastName"></span></div>
+<div class="detail-field"><strong>Street:</strong><span id="cdStreet"></span></div>
+<div class="detail-field"><strong>City:</strong><span id="cdCity"></span></div>
+<div class="detail-field"><strong>State:</strong><span id="cdState"></span></div>
+<div class="detail-field"><strong>Zipcode:</strong><span id="cdZipcode"></span></div>
 </div>
 <div class="detail-card">
 <h3 style="margin-top: 0;">Related Deals</h3>
@@ -367,9 +377,36 @@ tr:last-child td { border-bottom: none; }
 <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="contactEmail"></div>
 <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="contactPhone"></div>
 <div class="form-group"><label class="form-label">Organization</label><input class="form-input" id="contactOrg"></div>
+<div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="contactFirstName"></div>
+<div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="contactLastName"></div>
+<div class="form-group"><label class="form-label">Street</label><input class="form-input" id="contactStreet"></div>
+<div class="form-group"><label class="form-label">City</label><input class="form-input" id="contactCity"></div>
+<div class="form-group"><label class="form-label">State</label><input class="form-input" id="contactState"></div>
+<div class="form-group"><label class="form-label">Zipcode</label><input class="form-input" id="contactZipcode"></div>
 <div class="form-actions">
 <button class="btn" onclick="submitContact()">Save Contact</button>
 <button class="btn btn-secondary" onclick="closeModal('contactModal')">Cancel</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="editContactModal">
+<div class="modal-content">
+<div class="modal-header"><span>Edit Contact</span><button class="modal-close" onclick="closeModal('editContactModal')">&times;</button></div>
+<div id="editContactFormMsg" class="status-msg"></div>
+<div class="form-group"><label class="form-label">Name</label><input class="form-input" id="editContactName"></div>
+<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="editContactEmail"></div>
+<div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="editContactPhone"></div>
+<div class="form-group"><label class="form-label">Organization</label><input class="form-input" id="editContactOrg"></div>
+<div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="editContactFirstName"></div>
+<div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="editContactLastName"></div>
+<div class="form-group"><label class="form-label">Street</label><input class="form-input" id="editContactStreet"></div>
+<div class="form-group"><label class="form-label">City</label><input class="form-input" id="editContactCity"></div>
+<div class="form-group"><label class="form-label">State</label><input class="form-input" id="editContactState"></div>
+<div class="form-group"><label class="form-label">Zipcode</label><input class="form-input" id="editContactZipcode"></div>
+<div class="form-actions">
+<button class="btn" onclick="submitEditContact()">Save Changes</button>
+<button class="btn btn-secondary" onclick="closeModal('editContactModal')">Cancel</button>
 </div>
 </div>
 </div>
@@ -507,7 +544,7 @@ async function loadContacts() {
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : rows.length;
   document.getElementById("contactsTable").innerHTML = rows.map(function(c) {
-    return "<tr><td>" + escapeHtml(c.name) + "</td><td>" + escapeHtml(c.email) + "</td><td>" + escapeHtml(c.phone) + "</td><td>" + escapeHtml(c.organization) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openContactDetail(" + c.id + ")\">View</button></td></tr>";
+    return "<tr><td>" + escapeHtml(c.name) + "</td><td>" + escapeHtml(c.email) + "</td><td>" + escapeHtml(c.phone) + "</td><td>" + escapeHtml(c.organization) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openContactDetail(" + c.id + ")\">View</button> <button class=\"btn btn-secondary btn-small\" onclick=\"openEditContact(" + c.id + ")\">Edit</button></td></tr>";
   }).join("") || '<tr><td colspan="4" class="empty-state">No contacts found</td></tr>';
   renderPagination("contactsPagination", contactsPage, total, function(p){ contactsPage = p; loadContacts(); });
 }
@@ -713,6 +750,12 @@ async function openContactDetail(id) {
   document.getElementById("cdEmail").textContent = c.email || String.fromCharCode(8212);
   document.getElementById("cdPhone").textContent = c.phone || String.fromCharCode(8212);
   document.getElementById("cdOrg").textContent = c.organization || String.fromCharCode(8212);
+  document.getElementById("cdFirstName").textContent = c.first_name || String.fromCharCode(8212);
+  document.getElementById("cdLastName").textContent = c.last_name || String.fromCharCode(8212);
+  document.getElementById("cdStreet").textContent = c.address_street || String.fromCharCode(8212);
+  document.getElementById("cdCity").textContent = c.address_city || String.fromCharCode(8212);
+  document.getElementById("cdState").textContent = c.address_state || String.fromCharCode(8212);
+  document.getElementById("cdZipcode").textContent = c.address_zipcode || String.fromCharCode(8212);
   let orFilters = [];
   if (c.email) orFilters.push("email.eq." + encodeURIComponent(c.email));
   if (c.name) orFilters.push("person_name.eq." + encodeURIComponent(c.name));
@@ -857,16 +900,70 @@ async function submitContact() {
     name: name,
     email: document.getElementById("contactEmail").value.trim() || null,
     phone: document.getElementById("contactPhone").value.trim() || null,
-    organization: document.getElementById("contactOrg").value.trim() || null
+    organization: document.getElementById("contactOrg").value.trim() || null,
+    first_name: document.getElementById("contactFirstName").value.trim() || null,
+    last_name: document.getElementById("contactLastName").value.trim() || null,
+    address_street: document.getElementById("contactStreet").value.trim() || null,
+    address_city: document.getElementById("contactCity").value.trim() || null,
+    address_state: document.getElementById("contactState").value.trim() || null,
+    address_zipcode: document.getElementById("contactZipcode").value.trim() || null
   };
   msg.textContent = "Saving...";
   const res = await sb("contacts", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
   if (res.ok) {
     closeModal("contactModal");
-    ["contactName","contactEmail","contactPhone","contactOrg"].forEach(function(id){ document.getElementById(id).value = ""; });
+    ["contactName","contactEmail","contactPhone","contactOrg","contactFirstName","contactLastName","contactStreet","contactCity","contactState","contactZipcode"].forEach(function(id){ document.getElementById(id).value = ""; });
     msg.textContent = "";
     loadDashboard();
     if (document.getElementById("contacts").classList.contains("active")) loadContacts();
+  } else {
+    msg.textContent = "Error saving contact.";
+  }
+}
+
+let editingContactId = null;
+async function openEditContact(id) {
+  editingContactId = id;
+  const res = await sb("contacts?id=eq." + id + "&select=*");
+  const rows = await res.json();
+  if (!rows.length) return;
+  const c = rows[0];
+  document.getElementById("editContactName").value = c.name || "";
+  document.getElementById("editContactEmail").value = c.email || "";
+  document.getElementById("editContactPhone").value = c.phone || "";
+  document.getElementById("editContactOrg").value = c.organization || "";
+  document.getElementById("editContactFirstName").value = c.first_name || "";
+  document.getElementById("editContactLastName").value = c.last_name || "";
+  document.getElementById("editContactStreet").value = c.address_street || "";
+  document.getElementById("editContactCity").value = c.address_city || "";
+  document.getElementById("editContactState").value = c.address_state || "";
+  document.getElementById("editContactZipcode").value = c.address_zipcode || "";
+  document.getElementById("editContactFormMsg").textContent = "";
+  openModal("editContactModal");
+}
+async function submitEditContact() {
+  const name = document.getElementById("editContactName").value.trim();
+  const msg = document.getElementById("editContactFormMsg");
+  if (!name) { msg.textContent = "Name is required."; return; }
+  const payload = {
+    name: name,
+    email: document.getElementById("editContactEmail").value.trim() || null,
+    phone: document.getElementById("editContactPhone").value.trim() || null,
+    organization: document.getElementById("editContactOrg").value.trim() || null,
+    first_name: document.getElementById("editContactFirstName").value.trim() || null,
+    last_name: document.getElementById("editContactLastName").value.trim() || null,
+    address_street: document.getElementById("editContactStreet").value.trim() || null,
+    address_city: document.getElementById("editContactCity").value.trim() || null,
+    address_state: document.getElementById("editContactState").value.trim() || null,
+    address_zipcode: document.getElementById("editContactZipcode").value.trim() || null
+  };
+  msg.textContent = "Saving...";
+  const res = await sb("contacts?id=eq." + editingContactId, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
+  if (res.ok) {
+    closeModal("editContactModal");
+    msg.textContent = "";
+    if (document.getElementById("contacts").classList.contains("active")) loadContacts();
+    if (currentContactId === editingContactId) openContactDetail(editingContactId);
   } else {
     msg.textContent = "Error saving contact.";
   }
