@@ -141,8 +141,6 @@ tr:last-child td { border-bottom: none; }
 <div class="metric-card"><div class="metric-label">Contacts</div><div class="metric-value" id="totalContacts">-</div></div>
 <div class="metric-card"><div class="metric-label">Avg Deal Size</div><div class="metric-value" id="avgDeal">-</div></div>
 </div>
-<h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 14px; font-weight: 600;">Pipeline by Stage</h3>
-<div id="pipelineChart" style="background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem;">Loading...</div>
 </div>
 
 <div class="view-section" id="deals">
@@ -457,19 +455,12 @@ function fmtMoney(n) {
 async function loadDashboard() {
   const statsRes = await sb("deal_stats").then(function(r){ return r.json(); });
   const cstatsRes = await sb("contact_stats").then(function(r){ return r.json(); });
-  const stages = await sb("deals_by_stage").then(function(r){ return r.json(); });
   const s = statsRes[0] || {};
   const c = cstatsRes[0] || {};
   document.getElementById("totalDeals").textContent = s.total_deals || 0;
   document.getElementById("pipelineValue").textContent = fmtMoney(s.pipeline_value);
   document.getElementById("totalContacts").textContent = c.total_contacts || 0;
   document.getElementById("avgDeal").textContent = fmtMoney(s.avg_deal);
-
-  const maxCount = Math.max.apply(null, stages.map(function(x){ return x.cnt; }).concat([1]));
-  const chart = stages.map(function(row) {
-    return '<div class="chart-bar"><div class="bar-label"><span>' + escapeHtml(row.stage) + '</span><span>' + row.cnt + ' deals</span></div><div class="bar-fill" style="width:' + (row.cnt / maxCount * 100) + '%"></div></div>';
-  }).join("");
-  document.getElementById("pipelineChart").innerHTML = chart || '<div class="empty-state">No deals yet</div>';
 }
 
 function stageBadgeClass(stage) {
