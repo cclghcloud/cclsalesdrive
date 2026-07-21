@@ -87,6 +87,21 @@ tr:last-child td { border-bottom: none; }
 .activity-item::before { background: #38bdf8; }
 .note-meta { font-size: 11px; color: #a3a1b5; margin-bottom: 4px; }
 .activity-item { display: flex; gap: 12px; align-items: center; }
+.activity-filter { margin-bottom: 10px; }
+.filter-pill { display: inline-block; padding: 3px 10px; margin-right: 6px; margin-bottom: 6px; border-radius: 12px; font-size: 11px; background: #f0f0f5; color: #6b6880; cursor: pointer; border: 1px solid transparent; user-select: none; }
+.filter-pill.active { background: #6d5efc; color: #fff; }
+.activity-item.type-call::before { background: #6d5efc; }
+.activity-item.type-email::before { background: #38bdf8; }
+.activity-item.type-meeting::before { background: #f5a623; }
+.activity-item.type-task::before { background: #22c55e; }
+.activity-item.type-file::before { background: #a855f7; }
+.activity-item.type-changelog::before { background: #94a3b8; }
+.badge-type-call { background: #ece9fe; color: #6d5efc; }
+.badge-type-email { background: #e0f2fe; color: #0284c7; }
+.badge-type-meeting { background: #fef3c7; color: #b45309; }
+.badge-type-task { background: #dcfce7; color: #15803d; }
+.badge-type-file { background: #f3e8ff; color: #9333ea; }
+.badge-type-changelog { background: #f1f5f9; color: #64748b; }
 </style>
 </head>
 <body>
@@ -188,11 +203,12 @@ tr:last-child td { border-bottom: none; }
 </div>
 <div id="cdActivitiesPane" style="display: none;">
 <div class="add-row activity-add-row">
-<select class="form-select" id="cdActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option></select>
+<select class="form-select" id="cdActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option><option>File</option><option>Changelog</option></select>
 <input class="form-input" id="cdActSubject" placeholder="Subject">
 <input class="form-input" id="cdActDue" type="date">
 <button class="btn" onclick="addContactActivity()">Log Activity</button>
 </div>
+<div class="activity-filter" id="cdActivityFilter"><span class="filter-pill active" onclick="filterActivities('contact','All', this)">All</span><span class="filter-pill" onclick="filterActivities('contact','Call', this)">Calls</span><span class="filter-pill" onclick="filterActivities('contact','Email', this)">Emails</span><span class="filter-pill" onclick="filterActivities('contact','Meeting', this)">Meetings</span><span class="filter-pill" onclick="filterActivities('contact','Task', this)">Tasks</span><span class="filter-pill" onclick="filterActivities('contact','File', this)">Files</span><span class="filter-pill" onclick="filterActivities('contact','Changelog', this)">Changelog</span></div>
 <div id="cdActivitiesList"></div>
 </div>
 </div>
@@ -229,11 +245,12 @@ tr:last-child td { border-bottom: none; }
 </div>
 <div id="ddActivitiesPane" style="display: none;">
 <div class="add-row activity-add-row">
-<select class="form-select" id="ddActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option></select>
+<select class="form-select" id="ddActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option><option>File</option><option>Changelog</option></select>
 <input class="form-input" id="ddActSubject" placeholder="Subject">
 <input class="form-input" id="ddActDue" type="date">
 <button class="btn" onclick="addDealActivity()">Log Activity</button>
 </div>
+<div class="activity-filter" id="ddActivityFilter"><span class="filter-pill active" onclick="filterActivities('deal','All', this)">All</span><span class="filter-pill" onclick="filterActivities('deal','Call', this)">Calls</span><span class="filter-pill" onclick="filterActivities('deal','Email', this)">Emails</span><span class="filter-pill" onclick="filterActivities('deal','Meeting', this)">Meetings</span><span class="filter-pill" onclick="filterActivities('deal','Task', this)">Tasks</span><span class="filter-pill" onclick="filterActivities('deal','File', this)">Files</span><span class="filter-pill" onclick="filterActivities('deal','Changelog', this)">Changelog</span></div>
 <div id="ddActivitiesList"></div>
 </div>
 </div>
@@ -558,12 +575,33 @@ function renderNote(n) {
   const d = new Date(n.created_at);
   return '<div class="note-item"><div class="note-meta">' + escapeHtml(n.author || "You") + ' &middot; ' + d.toLocaleString() + '</div><div>' + escapeHtml(n.body) + '</div></div>';
 }
+function activityTypeClass(type) {
+  const key = (type || "").toLowerCase();
+  const map = { call: "badge-type-call", email: "badge-type-email", meeting: "badge-type-meeting", task: "badge-type-task", file: "badge-type-file", changelog: "badge-type-changelog" };
+  return map[key] || "";
+}
 function renderActivity(a) {
-  return '<div class="activity-item"><span class="badge">' + escapeHtml(a.activity_type || "") + '</span><span>' + escapeHtml(a.subject) + '</span><span>' + (a.due_date || "") + '</span></div>';
+  const typeKey = (a.activity_type || "").toLowerCase();
+  return '<div class="activity-item type-' + typeKey + '"><span class="badge ' + activityTypeClass(a.activity_type) + '">' + escapeHtml(a.activity_type || "") + '</span><span>' + escapeHtml(a.subject) + '</span><span>' + (a.due_date || "") + '</span></div>';
+}
+function renderActivitiesList(prefix) {
+  const data = (prefix === "cd" ? window.cdActivitiesData : window.ddActivitiesData) || [];
+  const filter = (prefix === "cd" ? window.cdActivityFilterVal : window.ddActivityFilterVal) || "All";
+  const filtered = filter === "All" ? data : data.filter(function(a){ return (a.activity_type || "") === filter; });
+  document.getElementById(prefix + "ActivitiesList").innerHTML = filtered.map(renderActivity).join("") || '<p class="empty-state">No activities yet</p>';
+}
+function filterActivities(scope, type, el) {
+  const prefix = scope === "contact" ? "cd" : "dd";
+  if (prefix === "cd") { window.cdActivityFilterVal = type; } else { window.ddActivityFilterVal = type; }
+  const container = el.parentElement;
+  Array.from(container.children).forEach(function(c){ c.classList.remove("active"); });
+  el.classList.add("active");
+  renderActivitiesList(prefix);
 }
 
 async function openContactDetail(id) {
   currentContactId = id;
+  window.cdActivityFilterVal = "All";
   showDetail("contactDetail");
   document.getElementById("viewTitle").textContent = "Contact Details";
   const res = await sb("contacts?id=eq." + id + "&select=*");
@@ -601,7 +639,8 @@ async function loadContactNotes(id) {
 async function loadContactActivities(id) {
   const res = await sb("activities?contact_id=eq." + id + "&order=created_at.desc");
   const rows = await res.json();
-  document.getElementById("cdActivitiesList").innerHTML = rows.map(renderActivity).join("") || '<p class="empty-state">No activities yet</p>';
+  window.cdActivitiesData = rows;
+  renderActivitiesList("cd");
 }
 async function addContactNote() {
   const body = document.getElementById("cdNoteInput").value.trim();
@@ -622,6 +661,7 @@ async function addContactActivity() {
 
 async function openDealDetail(id) {
   currentDealId = id;
+  window.ddActivityFilterVal = "All";
   showDetail("dealDetail");
   document.getElementById("viewTitle").textContent = "Deal Details";
   const res = await sb("deals?id=eq." + id + "&select=*");
@@ -664,7 +704,8 @@ async function loadDealNotes(id) {
 async function loadDealActivities(id) {
   const res = await sb("activities?deal_id=eq." + id + "&order=created_at.desc");
   const rows = await res.json();
-  document.getElementById("ddActivitiesList").innerHTML = rows.map(renderActivity).join("") || '<p class="empty-state">No activities yet</p>';
+  window.ddActivitiesData = rows;
+  renderActivitiesList("dd");
 }
 async function addDealNote() {
   const body = document.getElementById("ddNoteInput").value.trim();
@@ -697,7 +738,7 @@ async function loadActivitiesFeed() {
   const rows = await res.json();
   document.getElementById("activitiesFeed").innerHTML = rows.map(function(a){
     const related = (a.contacts && a.contacts.name) || (a.deals && a.deals.deal_title) || String.fromCharCode(8212);
-    return "<tr><td><span class=\"badge\">" + escapeHtml(a.activity_type||"") + "</span></td><td>" + escapeHtml(a.subject) + "</td><td>" + escapeHtml(related) + "</td><td>" + (a.due_date||String.fromCharCode(8212)) + "</td><td>" + (a.done ? "Done" : "Open") + "</td></tr>";
+    return "<tr><td><span class=\"badge \" + activityTypeClass(a.activity_type) + \"\">" + escapeHtml(a.activity_type||"") + "</span></td><td>" + escapeHtml(a.subject) + "</td><td>" + escapeHtml(related) + "</td><td>" + (a.due_date||String.fromCharCode(8212)) + "</td><td>" + (a.done ? "Done" : "Open") + "</td></tr>";
   }).join("") || '<tr><td colspan="5" class="empty-state">No activities logged yet</td></tr>';
 }
 
