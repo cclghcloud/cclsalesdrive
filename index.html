@@ -193,12 +193,11 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-card">
 <div class="detail-profile"><div class="avatar" id="cdAvatar">?</div><div><h2 id="cdName"></h2></div></div>
 <button class="btn btn-secondary btn-small" onclick="openEditContact(currentContactId)" style="margin-bottom: 0.75rem;">Edit Contact</button>
-<div class="detail-field"><strong>Email:</strong><span id="cdEmail"></span></div>
-<div class="detail-field"><strong>Phone:</strong><span id="cdPhone"></span></div>
-<div class="detail-field"><strong>Organization:</strong><span id="cdOrg"></span></div>
 </div>
 <div class="detail-card">
 <h3 style="margin-top: 0;">Details</h3>
+<div class="detail-field"><strong>Email:</strong><span id="cdEmail"></span></div>
+<div class="detail-field"><strong>Phone:</strong><span id="cdPhone"></span></div>
 <div class="detail-field"><strong>First Name:</strong><span id="cdFirstName"></span></div>
 <div class="detail-field"><strong>Last Name:</strong><span id="cdLastName"></span></div>
 <div class="detail-field"><strong>Street:</strong><span id="cdStreet"></span></div>
@@ -376,7 +375,7 @@ tr:last-child td { border-bottom: none; }
 <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="contactName"></div>
 <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="contactEmail"></div>
 <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="contactPhone"></div>
-<div class="form-group"><label class="form-label">Organization</label><input class="form-input" id="contactOrg"></div>
+
 <div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="contactFirstName"></div>
 <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="contactLastName"></div>
 <div class="form-group"><label class="form-label">Street</label><input class="form-input" id="contactStreet"></div>
@@ -397,7 +396,7 @@ tr:last-child td { border-bottom: none; }
 <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="editContactName"></div>
 <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="editContactEmail"></div>
 <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="editContactPhone"></div>
-<div class="form-group"><label class="form-label">Organization</label><input class="form-input" id="editContactOrg"></div>
+
 <div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="editContactFirstName"></div>
 <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="editContactLastName"></div>
 <div class="form-group"><label class="form-label">Street</label><input class="form-input" id="editContactStreet"></div>
@@ -749,7 +748,6 @@ async function openContactDetail(id) {
   document.getElementById("cdAvatar").textContent = initials(c.name);
   document.getElementById("cdEmail").textContent = c.email || String.fromCharCode(8212);
   document.getElementById("cdPhone").textContent = c.phone || String.fromCharCode(8212);
-  document.getElementById("cdOrg").textContent = c.organization || String.fromCharCode(8212);
   document.getElementById("cdFirstName").textContent = c.first_name || String.fromCharCode(8212);
   document.getElementById("cdLastName").textContent = c.last_name || String.fromCharCode(8212);
   document.getElementById("cdStreet").textContent = c.address_street || String.fromCharCode(8212);
@@ -900,7 +898,6 @@ async function submitContact() {
     name: name,
     email: document.getElementById("contactEmail").value.trim() || null,
     phone: document.getElementById("contactPhone").value.trim() || null,
-    organization: document.getElementById("contactOrg").value.trim() || null,
     first_name: document.getElementById("contactFirstName").value.trim() || null,
     last_name: document.getElementById("contactLastName").value.trim() || null,
     address_street: document.getElementById("contactStreet").value.trim() || null,
@@ -912,7 +909,7 @@ async function submitContact() {
   const res = await sb("contacts", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
   if (res.ok) {
     closeModal("contactModal");
-    ["contactName","contactEmail","contactPhone","contactOrg","contactFirstName","contactLastName","contactStreet","contactCity","contactState","contactZipcode"].forEach(function(id){ document.getElementById(id).value = ""; });
+    ["contactName","contactEmail","contactPhone","contactFirstName","contactLastName","contactStreet","contactCity","contactState","contactZipcode"].forEach(function(id){ document.getElementById(id).value = ""; });
     msg.textContent = "";
     loadDashboard();
     if (document.getElementById("contacts").classList.contains("active")) loadContacts();
@@ -931,7 +928,6 @@ async function openEditContact(id) {
   document.getElementById("editContactName").value = c.name || "";
   document.getElementById("editContactEmail").value = c.email || "";
   document.getElementById("editContactPhone").value = c.phone || "";
-  document.getElementById("editContactOrg").value = c.organization || "";
   document.getElementById("editContactFirstName").value = c.first_name || "";
   document.getElementById("editContactLastName").value = c.last_name || "";
   document.getElementById("editContactStreet").value = c.address_street || "";
@@ -949,7 +945,6 @@ async function submitEditContact() {
     name: name,
     email: document.getElementById("editContactEmail").value.trim() || null,
     phone: document.getElementById("editContactPhone").value.trim() || null,
-    organization: document.getElementById("editContactOrg").value.trim() || null,
     first_name: document.getElementById("editContactFirstName").value.trim() || null,
     last_name: document.getElementById("editContactLastName").value.trim() || null,
     address_street: document.getElementById("editContactStreet").value.trim() || null,
