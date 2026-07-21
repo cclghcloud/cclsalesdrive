@@ -19,6 +19,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
 .btn { background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
 .btn:hover { background: #1d4ed8; }
 .btn-secondary { background: #f0f0f0; color: #333; }
+.btn-small { padding: 0.3rem 0.6rem; font-size: 12px; }
 .content { flex: 1; overflow-y: auto; padding: 1.5rem; }
 .view-section { display: none; }
 .view-section.active { display: block; animation: fadeIn 0.3s; }
@@ -91,7 +92,7 @@ tr:hover { background: #f9fafb; }
 </div>
 <div class="table-wrapper">
 <table>
-<thead><tr><th>Deal Title</th><th>Person</th><th>Organization</th><th>Stage</th><th>Value</th><th>Owner</th></tr></thead>
+<thead><tr><th>Deal Title</th><th>Person</th><th>Organization</th><th>Stage</th><th>Value</th><th>Owner</th><th>Actions</th></tr></thead>
 <tbody id="dealsTable"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
 </table>
 </div>
@@ -153,6 +154,26 @@ tr:hover { background: #f9fafb; }
 <div class="form-actions">
 <button class="btn" onclick="submitDeal()">Save Deal</button>
 <button class="btn btn-secondary" onclick="closeModal('dealModal')">Cancel</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="editDealModal">
+<div class="modal-content">
+<div class="modal-header"><span>Edit Deal</span><button class="modal-close" onclick="closeModal('editDealModal')">&times;</button></div>
+<div id="editDealFormMsg" class="status-msg"></div>
+<div class="form-group"><label class="form-label">Deal Title</label><input class="form-input" id="editDealTitle"></div>
+<div class="form-group"><label class="form-label">Person Name</label><input class="form-input" id="editDealPerson"></div>
+<div class="form-group"><label class="form-label">Organization</label><input class="form-input" id="editDealOrg"></div>
+<div class="form-group"><label class="form-label">Stage</label>
+<select class="form-select" id="editDealStage">
+<option>Lead</option><option>MQL</option><option>SQL</option><option>SAL</option><option>Opportunity Created</option><option>Options Contract Sent</option><option>CLOSED-WON</option><option>CLOSED-LOST</option>
+</select></div>
+<div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="editDealValue" type="number"></div>
+<div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="editDealOwner"></div>
+<div class="form-actions">
+<button class="btn" onclick="submitEditDeal()">Save Changes</button>
+<button class="btn btn-secondary" onclick="closeModal('editDealModal')">Cancel</button>
 </div>
 </div>
 </div>
@@ -263,7 +284,7 @@ async function loadDeals() {
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : rows.length;
   document.getElementById("dealsTable").innerHTML = rows.map(function(d) {
-    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + escapeHtml(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td></tr>";
+    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + escapeHtml(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openEditDeal(" + d.id + ")\">Edit</button></td></tr>";
   }).join("") || '<tr><td colspan="6" class="empty-state">No deals found</td></tr>';
   renderPagination("dealsPagination", dealsPage, total, function(p){ dealsPage = p; loadDeals(); });
 }
@@ -319,6 +340,48 @@ async function submitDeal() {
   if (res.ok) {
     closeModal("dealModal");
     ["dealTitle","dealPerson","dealOrg","dealValue","dealOwner"].forEach(function(id){ document.getElementById(id).value = ""; });
+    msg.textContent = "";
+    loadDashboard();
+    if (document.getElementById("deals").classList.contains("active")) loadDeals();
+  } else {
+    msg.textContent = "Error saving deal.";
+  }
+}
+
+let editingDealId = null;
+
+async function openEditDeal(id) {
+  editingDealId = id;
+  const res = await sb("deals?id=eq." + id + "&select=id,deal_title,person_name,organization_name,pipeline_stage,deal_value,deal_owner");
+  const rows = await res.json();
+  if (!rows.length) return;
+  const d = rows[0];
+  document.getElementById("editDealTitle").value = d.deal_title || "";
+  document.getElementById("editDealPerson").value = d.person_name || "";
+  document.getElementById("editDealOrg").value = d.organization_name || "";
+  document.getElementById("editDealStage").value = d.pipeline_stage || "Lead";
+  document.getElementById("editDealValue").value = d.deal_value != null ? d.deal_value : "";
+  document.getElementById("editDealOwner").value = d.deal_owner || "";
+  document.getElementById("editDealFormMsg").textContent = "";
+  openModal("editDealModal");
+}
+
+async function submitEditDeal() {
+  const title = document.getElementById("editDealTitle").value.trim();
+  const msg = document.getElementById("editDealFormMsg");
+  if (!title) { msg.textContent = "Deal title is required."; return; }
+  const payload = {
+    deal_title: title,
+    person_name: document.getElementById("editDealPerson").value.trim() || null,
+    organization_name: document.getElementById("editDealOrg").value.trim() || null,
+    pipeline_stage: document.getElementById("editDealStage").value,
+    deal_value: parseFloat(document.getElementById("editDealValue").value) || null,
+    deal_owner: document.getElementById("editDealOwner").value.trim() || null
+  };
+  msg.textContent = "Saving...";
+  const res = await sb("deals?id=eq." + editingDealId, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
+  if (res.ok) {
+    closeModal("editDealModal");
     msg.textContent = "";
     loadDashboard();
     if (document.getElementById("deals").classList.contains("active")) loadDeals();
