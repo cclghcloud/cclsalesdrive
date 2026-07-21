@@ -20,6 +20,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxyge
 .btn:hover { background: #1d4ed8; }
 .btn-secondary { background: #f0f0f0; color: #333; }
 .btn-small { padding: 0.3rem 0.6rem; font-size: 12px; }
+.detail-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+.detail-field { font-size: 13px; margin-bottom: 0.5rem; color: #333; }
+.detail-field strong { color: #666; font-weight: 600; margin-right: 0.4rem; }
+.related-list { display: flex; flex-direction: column; gap: 6px; }
+.related-item { display: flex; justify-content: space-between; gap: 12px; padding: 0.6rem 0.8rem; background: #f9fafb; border-radius: 6px; cursor: pointer; font-size: 13px; border: 1px solid #eee; }
+.related-item:hover { background: #f0f0f0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #dbeafe; color: #2563eb; font-size: 11px; font-weight: 600; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid #e0e0e0; margin-bottom: 1rem; }
+.tab { padding: 0.6rem 1rem; cursor: pointer; font-size: 13px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; }
+.tab.active { color: #2563eb; border-bottom: 2px solid #2563eb; }
+.add-row { display: flex; gap: 8px; margin-bottom: 1rem; align-items: flex-start; }
+.add-row textarea { flex: 1; resize: vertical; }
+.activity-add-row select, .activity-add-row input { flex: 1; }
+.note-item, .activity-item { padding: 0.7rem 0.9rem; background: #f9fafb; border-radius: 6px; margin-bottom: 8px; font-size: 13px; border: 1px solid #eee; }
+.note-meta { font-size: 11px; color: #888; margin-bottom: 4px; }
+.activity-item { display: flex; gap: 12px; align-items: center; }
 .content { flex: 1; overflow-y: auto; padding: 1.5rem; }
 .view-section { display: none; }
 .view-section.active { display: block; animation: fadeIn 0.3s; }
@@ -59,8 +75,8 @@ tr:hover { background: #f9fafb; }
 <div class="sidebar">
 <div class="logo">SalesPipe</div>
 <div class="nav-item active" onclick="switchView('dashboard')">Dashboard</div>
-<div class="nav-item" onclick="switchView('deals')">Deals</div>
-<div class="nav-item" onclick="switchView('contacts')">Contacts</div>
+<div class="nav-item" id="navDeals" onclick="switchView('deals')">Deals</div>
+<div class="nav-item" id="navContacts" onclick="switchView('contacts')">Contacts</div>
 <div class="nav-item" onclick="switchView('activities')">Activities</div>
 <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
 <div class="nav-item" onclick="switchView('reports')">Reports</div>
@@ -105,7 +121,7 @@ tr:hover { background: #f9fafb; }
 </div>
 <div class="table-wrapper">
 <table>
-<thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Organization</th></tr></thead>
+<thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Organization</th><th>Actions</th></tr></thead>
 <tbody id="contactsTable"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody>
 </table>
 </div>
@@ -113,12 +129,94 @@ tr:hover { background: #f9fafb; }
 </div>
 
 <div class="view-section" id="activities">
-<div class="empty-state"><p>No activities logged yet</p></div>
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Type</th><th>Subject</th><th>Related To</th><th>Due Date</th><th>Status</th></tr></thead>
+<tbody id="activitiesFeed"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+</table>
+</div>
 </div>
 
 <div class="view-section" id="reports">
 <div class="empty-state">
 <p style="font-size: 14px; margin-bottom: 0.5rem;">Pipeline breakdown is shown on the Dashboard</p>
+</div>
+</div>
+
+<div class="view-section" id="contactDetail">
+<button class="btn btn-secondary" onclick="backToList('contacts')" style="margin-bottom: 1rem;">&larr; Back to Contacts</button>
+<div class="detail-card">
+<h2 id="cdName" style="margin: 0 0 0.5rem;"></h2>
+<div class="detail-field"><strong>Email:</strong><span id="cdEmail"></span></div>
+<div class="detail-field"><strong>Phone:</strong><span id="cdPhone"></span></div>
+<div class="detail-field"><strong>Organization:</strong><span id="cdOrg"></span></div>
+</div>
+<div class="detail-card">
+<h3 style="margin-top: 0;">Related Deals</h3>
+<div id="cdDeals" class="related-list"><p class="empty-state">Loading...</p></div>
+</div>
+<div class="detail-card">
+<div class="tabs">
+<div class="tab active" onclick="switchDetailTab('contact','notes')">Notes</div>
+<div class="tab" onclick="switchDetailTab('contact','activities')">Activities</div>
+</div>
+<div id="cdNotesPane">
+<div class="add-row">
+<textarea class="form-input" id="cdNoteInput" placeholder="Write a note..." rows="2"></textarea>
+<button class="btn" onclick="addContactNote()">Add Note</button>
+</div>
+<div id="cdNotesList"></div>
+</div>
+<div id="cdActivitiesPane" style="display: none;">
+<div class="add-row activity-add-row">
+<select class="form-select" id="cdActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option></select>
+<input class="form-input" id="cdActSubject" placeholder="Subject">
+<input class="form-input" id="cdActDue" type="date">
+<button class="btn" onclick="addContactActivity()">Log Activity</button>
+</div>
+<div id="cdActivitiesList"></div>
+</div>
+</div>
+</div>
+
+<div class="view-section" id="dealDetail">
+<button class="btn btn-secondary" onclick="backToList('deals')" style="margin-bottom: 1rem;">&larr; Back to Deals</button>
+<div class="detail-card">
+<h2 id="ddTitle" style="margin: 0 0 0.5rem;"></h2>
+<div class="detail-field"><strong>Stage:</strong><span id="ddStage"></span></div>
+<div class="detail-field"><strong>Value:</strong><span id="ddValue"></span></div>
+<div class="detail-field"><strong>Owner:</strong><span id="ddOwner"></span></div>
+<div class="detail-field"><strong>Person:</strong><span id="ddPerson"></span></div>
+<div class="detail-field"><strong>Organization:</strong><span id="ddOrg"></span></div>
+<div class="detail-field"><strong>Email:</strong><span id="ddEmail"></span></div>
+<div class="detail-field"><strong>Phone:</strong><span id="ddPhone"></span></div>
+<div class="detail-field"><strong>Expected Close:</strong><span id="ddClose"></span></div>
+</div>
+<div class="detail-card">
+<h3 style="margin-top: 0;">Related Contact</h3>
+<div id="ddContact" class="related-list"><p class="empty-state">Loading...</p></div>
+</div>
+<div class="detail-card">
+<div class="tabs">
+<div class="tab active" onclick="switchDetailTab('deal','notes')">Notes</div>
+<div class="tab" onclick="switchDetailTab('deal','activities')">Activities</div>
+</div>
+<div id="ddNotesPane">
+<div class="add-row">
+<textarea class="form-input" id="ddNoteInput" placeholder="Write a note..." rows="2"></textarea>
+<button class="btn" onclick="addDealNote()">Add Note</button>
+</div>
+<div id="ddNotesList"></div>
+</div>
+<div id="ddActivitiesPane" style="display: none;">
+<div class="add-row activity-add-row">
+<select class="form-select" id="ddActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option></select>
+<input class="form-input" id="ddActSubject" placeholder="Subject">
+<input class="form-input" id="ddActDue" type="date">
+<button class="btn" onclick="addDealActivity()">Log Activity</button>
+</div>
+<div id="ddActivitiesList"></div>
+</div>
 </div>
 </div>
 
@@ -222,6 +320,7 @@ function switchView(view) {
   else { newBtn.style.display = "none"; }
   if (view === "deals") loadDeals();
   if (view === "contacts") loadContacts();
+  if (view === "activities") loadActivitiesFeed();
 }
 
 function openModal(id) {
@@ -284,7 +383,7 @@ async function loadDeals() {
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : rows.length;
   document.getElementById("dealsTable").innerHTML = rows.map(function(d) {
-    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + escapeHtml(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openEditDeal(" + d.id + ")\">Edit</button></td></tr>";
+    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + escapeHtml(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openDealDetail(" + d.id + ")\">View</button> <button class=\"btn btn-secondary btn-small\" onclick=\"openEditDeal(" + d.id + ")\">Edit</button></td></tr>";
   }).join("") || '<tr><td colspan="6" class="empty-state">No deals found</td></tr>';
   renderPagination("dealsPagination", dealsPage, total, function(p){ dealsPage = p; loadDeals(); });
 }
@@ -301,7 +400,7 @@ async function loadContacts() {
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : rows.length;
   document.getElementById("contactsTable").innerHTML = rows.map(function(c) {
-    return "<tr><td>" + escapeHtml(c.name) + "</td><td>" + escapeHtml(c.email) + "</td><td>" + escapeHtml(c.phone) + "</td><td>" + escapeHtml(c.organization) + "</td></tr>";
+    return "<tr><td>" + escapeHtml(c.name) + "</td><td>" + escapeHtml(c.email) + "</td><td>" + escapeHtml(c.phone) + "</td><td>" + escapeHtml(c.organization) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openContactDetail(" + c.id + ")\">View</button></td></tr>";
   }).join("") || '<tr><td colspan="4" class="empty-state">No contacts found</td></tr>';
   renderPagination("contactsPagination", contactsPage, total, function(p){ contactsPage = p; loadContacts(); });
 }
@@ -388,6 +487,173 @@ async function submitEditDeal() {
   } else {
     msg.textContent = "Error saving deal.";
   }
+}
+
+let currentContactId = null;
+let currentDealId = null;
+
+function backToList(view) {
+  document.querySelectorAll(".view-section").forEach(function(el){ el.classList.remove("active"); });
+  document.getElementById(view).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(function(el){ el.classList.remove("active"); });
+  document.getElementById(view === "deals" ? "navDeals" : "navContacts").classList.add("active");
+  document.getElementById("viewTitle").textContent = view === "deals" ? "Deals" : "Contacts";
+  const newBtn = document.getElementById("newBtn");
+  newBtn.style.display = "inline-block";
+  if (view === "deals") { newBtn.setAttribute("onclick","openModal('dealModal')"); newBtn.textContent = "+ New Deal"; loadDeals(); }
+  else { newBtn.setAttribute("onclick","openModal('contactModal')"); newBtn.textContent = "+ New Contact"; loadContacts(); }
+}
+
+function showDetail(id) {
+  document.querySelectorAll(".view-section").forEach(function(el){ el.classList.remove("active"); });
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(function(el){ el.classList.remove("active"); });
+  document.getElementById("newBtn").style.display = "none";
+}
+
+function renderNote(n) {
+  const d = new Date(n.created_at);
+  return '<div class="note-item"><div class="note-meta">' + escapeHtml(n.author || "You") + ' &middot; ' + d.toLocaleString() + '</div><div>' + escapeHtml(n.body) + '</div></div>';
+}
+function renderActivity(a) {
+  return '<div class="activity-item"><span class="badge">' + escapeHtml(a.activity_type || "") + '</span><span>' + escapeHtml(a.subject) + '</span><span>' + (a.due_date || "") + '</span></div>';
+}
+
+async function openContactDetail(id) {
+  currentContactId = id;
+  showDetail("contactDetail");
+  document.getElementById("viewTitle").textContent = "Contact Details";
+  const res = await sb("contacts?id=eq." + id + "&select=*");
+  const rows = await res.json();
+  if (!rows.length) return;
+  const c = rows[0];
+  document.getElementById("cdName").textContent = c.name || "(no name)";
+  document.getElementById("cdEmail").textContent = c.email || String.fromCharCode(8212);
+  document.getElementById("cdPhone").textContent = c.phone || String.fromCharCode(8212);
+  document.getElementById("cdOrg").textContent = c.organization || String.fromCharCode(8212);
+  let orFilters = [];
+  if (c.email) orFilters.push("email.eq." + encodeURIComponent(c.email));
+  if (c.name) orFilters.push("person_name.eq." + encodeURIComponent(c.name));
+  document.getElementById("cdDeals").innerHTML = '<p class="empty-state">Loading...</p>';
+  if (orFilters.length) {
+    const dres = await sb("deals?select=id,deal_title,pipeline_stage,deal_value&order=id.desc&limit=25&or=(" + orFilters.join(",") + ")");
+    const deals = await dres.json();
+    document.getElementById("cdDeals").innerHTML = deals.map(function(d){
+      return '<div class="related-item" onclick="openDealDetail(' + d.id + ')"><span>' + escapeHtml(d.deal_title) + '</span><span class="badge">' + escapeHtml(d.pipeline_stage||"") + '</span><span>' + fmtMoney(d.deal_value) + '</span></div>';
+    }).join("") || '<p class="empty-state">No related deals found</p>';
+  } else {
+    document.getElementById("cdDeals").innerHTML = '<p class="empty-state">No related deals found</p>';
+  }
+  loadContactNotes(id);
+  loadContactActivities(id);
+  document.getElementById("cdNoteInput").value = "";
+}
+
+async function loadContactNotes(id) {
+  const res = await sb("notes?contact_id=eq." + id + "&order=created_at.desc");
+  const rows = await res.json();
+  document.getElementById("cdNotesList").innerHTML = rows.map(renderNote).join("") || '<p class="empty-state">No notes yet</p>';
+}
+async function loadContactActivities(id) {
+  const res = await sb("activities?contact_id=eq." + id + "&order=created_at.desc");
+  const rows = await res.json();
+  document.getElementById("cdActivitiesList").innerHTML = rows.map(renderActivity).join("") || '<p class="empty-state">No activities yet</p>';
+}
+async function addContactNote() {
+  const body = document.getElementById("cdNoteInput").value.trim();
+  if (!body || !currentContactId) return;
+  await sb("notes", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ contact_id: currentContactId, body: body, author: "You" }) });
+  document.getElementById("cdNoteInput").value = "";
+  loadContactNotes(currentContactId);
+}
+async function addContactActivity() {
+  const subject = document.getElementById("cdActSubject").value.trim();
+  if (!subject || !currentContactId) return;
+  const payload = { contact_id: currentContactId, activity_type: document.getElementById("cdActType").value, subject: subject, due_date: document.getElementById("cdActDue").value || null, author: "You" };
+  await sb("activities", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
+  document.getElementById("cdActSubject").value = "";
+  document.getElementById("cdActDue").value = "";
+  loadContactActivities(currentContactId);
+}
+
+async function openDealDetail(id) {
+  currentDealId = id;
+  showDetail("dealDetail");
+  document.getElementById("viewTitle").textContent = "Deal Details";
+  const res = await sb("deals?id=eq." + id + "&select=*");
+  const rows = await res.json();
+  if (!rows.length) return;
+  const d = rows[0];
+  const dash = String.fromCharCode(8212);
+  document.getElementById("ddTitle").textContent = d.deal_title || "(untitled deal)";
+  document.getElementById("ddStage").textContent = d.pipeline_stage || dash;
+  document.getElementById("ddValue").textContent = fmtMoney(d.deal_value);
+  document.getElementById("ddOwner").textContent = d.deal_owner || dash;
+  document.getElementById("ddPerson").textContent = d.person_name || dash;
+  document.getElementById("ddOrg").textContent = d.organization_name || dash;
+  document.getElementById("ddEmail").textContent = d.email || dash;
+  document.getElementById("ddPhone").textContent = d.phone || dash;
+  document.getElementById("ddClose").textContent = d.expected_close_date || dash;
+  let orFilters = [];
+  if (d.email) orFilters.push("email.eq." + encodeURIComponent(d.email));
+  if (d.person_name) orFilters.push("name.eq." + encodeURIComponent(d.person_name));
+  document.getElementById("ddContact").innerHTML = '<p class="empty-state">Loading...</p>';
+  if (orFilters.length) {
+    const cres = await sb("contacts?select=id,name,email,phone,organization&limit=5&or=(" + orFilters.join(",") + ")");
+    const contacts = await cres.json();
+    document.getElementById("ddContact").innerHTML = contacts.map(function(c){
+      return '<div class="related-item" onclick="openContactDetail(' + c.id + ')"><span>' + escapeHtml(c.name) + '</span><span>' + escapeHtml(c.email||"") + '</span></div>';
+    }).join("") || '<p class="empty-state">No matching contact found</p>';
+  } else {
+    document.getElementById("ddContact").innerHTML = '<p class="empty-state">No matching contact found</p>';
+  }
+  loadDealNotes(id);
+  loadDealActivities(id);
+  document.getElementById("ddNoteInput").value = "";
+}
+async function loadDealNotes(id) {
+  const res = await sb("notes?deal_id=eq." + id + "&order=created_at.desc");
+  const rows = await res.json();
+  document.getElementById("ddNotesList").innerHTML = rows.map(renderNote).join("") || '<p class="empty-state">No notes yet</p>';
+}
+async function loadDealActivities(id) {
+  const res = await sb("activities?deal_id=eq." + id + "&order=created_at.desc");
+  const rows = await res.json();
+  document.getElementById("ddActivitiesList").innerHTML = rows.map(renderActivity).join("") || '<p class="empty-state">No activities yet</p>';
+}
+async function addDealNote() {
+  const body = document.getElementById("ddNoteInput").value.trim();
+  if (!body || !currentDealId) return;
+  await sb("notes", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ deal_id: currentDealId, body: body, author: "You" }) });
+  document.getElementById("ddNoteInput").value = "";
+  loadDealNotes(currentDealId);
+}
+async function addDealActivity() {
+  const subject = document.getElementById("ddActSubject").value.trim();
+  if (!subject || !currentDealId) return;
+  const payload = { deal_id: currentDealId, activity_type: document.getElementById("ddActType").value, subject: subject, due_date: document.getElementById("ddActDue").value || null, author: "You" };
+  await sb("activities", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
+  document.getElementById("ddActSubject").value = "";
+  document.getElementById("ddActDue").value = "";
+  loadDealActivities(currentDealId);
+}
+
+function switchDetailTab(scope, tab) {
+  const prefix = scope === "contact" ? "cd" : "dd";
+  document.getElementById(prefix + "NotesPane").style.display = tab === "notes" ? "block" : "none";
+  document.getElementById(prefix + "ActivitiesPane").style.display = tab === "activities" ? "block" : "none";
+  const container = event.currentTarget.parentElement;
+  container.querySelectorAll(".tab").forEach(function(el){ el.classList.remove("active"); });
+  event.currentTarget.classList.add("active");
+}
+
+async function loadActivitiesFeed() {
+  const res = await sb("activities?select=*,contacts(name),deals(deal_title)&order=created_at.desc&limit=100");
+  const rows = await res.json();
+  document.getElementById("activitiesFeed").innerHTML = rows.map(function(a){
+    const related = (a.contacts && a.contacts.name) || (a.deals && a.deals.deal_title) || String.fromCharCode(8212);
+    return "<tr><td><span class=\"badge\">" + escapeHtml(a.activity_type||"") + "</span></td><td>" + escapeHtml(a.subject) + "</td><td>" + escapeHtml(related) + "</td><td>" + (a.due_date||String.fromCharCode(8212)) + "</td><td>" + (a.done ? "Done" : "Open") + "</td></tr>";
+  }).join("") || '<tr><td colspan="5" class="empty-state">No activities logged yet</td></tr>';
 }
 
 async function submitContact() {
