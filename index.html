@@ -68,9 +68,9 @@ tr:last-child td { border-bottom: none; }
 .badge-won { background: #e0f7e6; color: #17803d; }
 .badge-lost { background: #fde3e3; color: #c22929; }
 .detail-card { background: white; border: 1px solid #eceef2; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.1rem; box-shadow: 0 1px 2px rgba(16,24,40,0.04); }
-.detail-profile { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; }
+.detail-profile { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; padding-right: 90px; }
 .avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #6d5efc, #38bdf8); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
-.detail-profile h2 { font-size: 19px; font-weight: 700; color: #16152a; }
+.detail-profile h2 { font-size: 19px; font-weight: 700; color: #16152a; overflow-wrap: break-word; word-break: break-word; }
 .detail-field { font-size: 13px; margin-bottom: 0.6rem; color: #2c2b3d; display: flex; align-items: center; gap: 8px; }
 .detail-field strong { color: #8b899e; font-weight: 600; min-width: 110px; display: inline-block; }
 .related-list { display: flex; flex-direction: column; gap: 6px; }
@@ -287,7 +287,7 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-grid">
 <div class="detail-col-left">
 <div class="detail-card" style="position:relative">
-<div class="detail-profile"><div class="avatar" id="ddAvatar">?</div><div><h2 id="ddTitle"></h2></div></div><button class="btn btn-secondary btn-small" onclick="openEditDeal(currentDealId)" title="Edit Deal" style="position:absolute;top:14px;right:14px;">✎ Edit</button>
+<div class="detail-profile"><div class="avatar" id="ddAvatar">?</div><div style="min-width:0;flex:1;"><h2 id="ddTitle"></h2></div></div><button class="btn btn-secondary btn-small" onclick="openEditDeal(currentDealId)" title="Edit Deal" style="position:absolute;top:14px;right:14px;">✎ Edit</button>
 <div class="detail-field" style="display:none"><strong>Stage:</strong><span id="ddStage"></span></div>
 <div class="detail-field"><strong>Value:</strong><span id="ddValue"></span></div>
 <div class="detail-field"><strong>Owner:</strong><span id="ddOwner"></span></div>
