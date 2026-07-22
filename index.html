@@ -717,7 +717,7 @@ async function loadContacts() {
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : rows.length;
   document.getElementById("contactsTable").innerHTML = rows.map(function(c) {
-    return "<tr><td>" + escapeHtml(c.name) + "</td><td>" + escapeHtml(c.email) + "</td><td>" + escapeHtml(c.phone) + "</td><td>" + escapeHtml(c.organization) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openContactDetail(" + c.id + ")\">View</button> <button class=\"btn btn-secondary btn-small\" onclick=\"openEditContact(" + c.id + ")\">Edit</button></td></tr>";
+    return "<tr style=\"cursor:pointer\" onclick=\"openContactDetail(" + c.id + ")\"><td>" + escapeHtml(c.name) + "</td><td>" + escapeHtml(c.email) + "</td><td>" + escapeHtml(c.phone) + "</td><td>" + escapeHtml(c.organization) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"event.stopPropagation();openEditContact(" + c.id + ")\">Edit</button></td></tr>";
   }).join("") || '<tr><td colspan="4" class="empty-state">No contacts found</td></tr>';
   renderPagination("contactsPagination", contactsPage, total, function(p){ contactsPage = p; loadContacts(); });
 }
