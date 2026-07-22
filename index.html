@@ -101,13 +101,16 @@ tr:last-child td { border-bottom: none; }
 .badge-type-meeting { background: #fef3c7; color: #b45309; }
 .badge-type-task { background: #dcfce7; color: #15803d; }
 .badge-type-file { background: #f3e8ff; color: #9333ea; }
+.badge-type-document { background: #e0f2fe; color: #0369a1; }
 .badge-type-changelog { background: #f1f5f9; color: #64748b; }
 .detail-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.25rem; align-items: start; }
 .detail-col-left, .detail-col-right { display: flex; flex-direction: column; gap: 1.25rem; }
 @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } }
-.quick-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-.quick-tab { padding: 0.5rem 1.1rem; border-radius: 8px; background: #f5f4fa; color: #6b6880; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s; }
-.quick-tab.active { background: #6d5efc; color: #fff; }
+.quick-tabs { display: flex; gap: 1.4rem; margin-bottom: 1rem; border-bottom: 1px solid #ebe9f5; flex-wrap: wrap; }
+.quick-tab { display: flex; align-items: center; gap: 6px; padding: 0 0 0.6rem 0; color: #6b6880; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; }
+.quick-tab svg { width: 15px; height: 15px; flex-shrink: 0; }
+.quick-tab.active { color: #6d5efc; border-bottom-color: #6d5efc; }
+.quick-tab:hover { color: #443f6e; }
 .focus-card { background: linear-gradient(135deg, #fff9e6, #fffdf5); border: 1px solid #ffe9a8; }
 .badge-type-note { background: #ece9fe; color: #6d5efc; }
 .history-empty-hint { font-size: 12px; color: #a3a1b5; margin-top: 4px; }
@@ -244,8 +247,12 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-col-right">
 <div class="detail-card">
 <div class="quick-tabs">
-<div class="quick-tab active" onclick="switchDetailTab('contact','notes')">Note</div>
-<div class="quick-tab" onclick="switchDetailTab('contact','activities')">Activity</div>
+<div class="quick-tab active" onclick="switchDetailTab('contact','notes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Notes</div>
+<div class="quick-tab" onclick="switchDetailTab('contact','activities')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Activity</div>
+<div class="quick-tab" onclick="switchDetailTab('contact','call')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</div>
+<div class="quick-tab" onclick="switchDetailTab('contact','email')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg> Email</div>
+<div class="quick-tab" onclick="switchDetailTab('contact','file')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> Files</div>
+<div class="quick-tab" onclick="switchDetailTab('contact','document')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Documents</div>
 </div>
 <div id="cdNotesPane">
 <div class="add-row">
@@ -255,10 +262,38 @@ tr:last-child td { border-bottom: none; }
 </div>
 <div id="cdActivitiesPane" style="display: none;">
 <div class="add-row activity-add-row">
-<select class="form-select" id="cdActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option><option>File</option><option>Changelog</option></select>
+<select class="form-select" id="cdActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option><option>File</option><option>Document</option><option>Changelog</option></select>
 <input class="form-input" id="cdActSubject" placeholder="Subject">
 <input class="form-input" id="cdActDue" type="date">
 <button class="btn" onclick="addContactActivity()">Log Activity</button>
+</div>
+</div>
+<div id="cdCallPane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="cdCallSubject" placeholder="Call subject / notes">
+<input class="form-input" id="cdCallDue" type="date">
+<button class="btn" onclick="addContactActivity('Call')">Log Call</button>
+</div>
+</div>
+<div id="cdEmailPane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="cdEmailSubject" placeholder="Email subject">
+<input class="form-input" id="cdEmailDue" type="date">
+<button class="btn" onclick="addContactActivity('Email')">Log Email</button>
+</div>
+</div>
+<div id="cdFilePane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="cdFileSubject" placeholder="File description">
+<input class="form-input" id="cdFileDue" type="date">
+<button class="btn" onclick="addContactActivity('File')">Log File</button>
+</div>
+</div>
+<div id="cdDocumentPane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="cdDocumentSubject" placeholder="Document title">
+<input class="form-input" id="cdDocumentDue" type="date">
+<button class="btn" onclick="addContactActivity('Document')">Log Document</button>
 </div>
 </div>
 </div>
@@ -274,6 +309,7 @@ tr:last-child td { border-bottom: none; }
 <span class="filter-pill" onclick="filterHistory('contact','Activities', this)">Activities</span>
 <span class="filter-pill" onclick="filterHistory('contact','Email', this)">Emails</span>
 <span class="filter-pill" onclick="filterHistory('contact','File', this)">Files</span>
+<span class="filter-pill" onclick="filterHistory('contact','Document', this)">Documents</span>
 <span class="filter-pill" onclick="filterHistory('contact','Changelog', this)">Changelog</span>
 </div>
 <div id="cdHistoryList"><p class="empty-state">Loading...</p></div>
@@ -306,8 +342,12 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-col-right">
 <div class="detail-card">
 <div class="quick-tabs">
-<div class="quick-tab active" onclick="switchDetailTab('deal','notes')">Note</div>
-<div class="quick-tab" onclick="switchDetailTab('deal','activities')">Activity</div>
+<div class="quick-tab active" onclick="switchDetailTab('deal','notes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Notes</div>
+<div class="quick-tab" onclick="switchDetailTab('deal','activities')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Activity</div>
+<div class="quick-tab" onclick="switchDetailTab('deal','call')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</div>
+<div class="quick-tab" onclick="switchDetailTab('deal','email')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg> Email</div>
+<div class="quick-tab" onclick="switchDetailTab('deal','file')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> Files</div>
+<div class="quick-tab" onclick="switchDetailTab('deal','document')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Documents</div>
 </div>
 <div id="ddNotesPane">
 <div class="add-row">
@@ -317,10 +357,38 @@ tr:last-child td { border-bottom: none; }
 </div>
 <div id="ddActivitiesPane" style="display: none;">
 <div class="add-row activity-add-row">
-<select class="form-select" id="ddActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option><option>File</option><option>Changelog</option></select>
+<select class="form-select" id="ddActType"><option>Call</option><option>Email</option><option>Meeting</option><option>Task</option><option>File</option><option>Document</option><option>Changelog</option></select>
 <input class="form-input" id="ddActSubject" placeholder="Subject">
 <input class="form-input" id="ddActDue" type="date">
 <button class="btn" onclick="addDealActivity()">Log Activity</button>
+</div>
+</div>
+<div id="ddCallPane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="ddCallSubject" placeholder="Call subject / notes">
+<input class="form-input" id="ddCallDue" type="date">
+<button class="btn" onclick="addDealActivity('Call')">Log Call</button>
+</div>
+</div>
+<div id="ddEmailPane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="ddEmailSubject" placeholder="Email subject">
+<input class="form-input" id="ddEmailDue" type="date">
+<button class="btn" onclick="addDealActivity('Email')">Log Email</button>
+</div>
+</div>
+<div id="ddFilePane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="ddFileSubject" placeholder="File description">
+<input class="form-input" id="ddFileDue" type="date">
+<button class="btn" onclick="addDealActivity('File')">Log File</button>
+</div>
+</div>
+<div id="ddDocumentPane" style="display: none;">
+<div class="add-row activity-add-row">
+<input class="form-input" id="ddDocumentSubject" placeholder="Document title">
+<input class="form-input" id="ddDocumentDue" type="date">
+<button class="btn" onclick="addDealActivity('Document')">Log Document</button>
 </div>
 </div>
 </div>
@@ -336,6 +404,7 @@ tr:last-child td { border-bottom: none; }
 <span class="filter-pill" onclick="filterHistory('deal','Activities', this)">Activities</span>
 <span class="filter-pill" onclick="filterHistory('deal','Email', this)">Emails</span>
 <span class="filter-pill" onclick="filterHistory('deal','File', this)">Files</span>
+<span class="filter-pill" onclick="filterHistory('deal','Document', this)">Documents</span>
 <span class="filter-pill" onclick="filterHistory('deal','Changelog', this)">Changelog</span>
 </div>
 <div id="ddHistoryList"><p class="empty-state">Loading...</p></div>
@@ -890,6 +959,7 @@ function historyCategoryMatch(item, category) {
   if (category === "Activities") return item.__kind === "activity" && ["Call","Meeting","Task"].indexOf(item.activity_type) !== -1;
   if (category === "Email") return item.__kind === "activity" && item.activity_type === "Email";
   if (category === "File") return item.__kind === "activity" && item.activity_type === "File";
+  if (category === "Document") return item.__kind === "activity" && item.activity_type === "Document";
   if (category === "Changelog") return item.__kind === "activity" && item.activity_type === "Changelog";
   return true;
 }
@@ -919,7 +989,7 @@ function filterHistory(scope, category, el) {
 
 function activityTypeClass(type) {
   const key = (type || "").toLowerCase();
-  const map = { call: "badge-type-call", email: "badge-type-email", meeting: "badge-type-meeting", task: "badge-type-task", file: "badge-type-file", changelog: "badge-type-changelog" };
+  const map = { call: "badge-type-call", email: "badge-type-email", meeting: "badge-type-meeting", task: "badge-type-task", file: "badge-type-file", document: "badge-type-document", changelog: "badge-type-changelog" };
   return map[key] || "";
 }
 function renderActivity(a) {
@@ -1002,13 +1072,16 @@ async function addContactNote() {
   document.getElementById("cdNoteInput").value = "";
   loadContactNotes(currentContactId);
 }
-async function addContactActivity() {
-  const subject = document.getElementById("cdActSubject").value.trim();
+async function addContactActivity(forcedType) {
+  const subjectId = forcedType ? ("cd" + forcedType + "Subject") : "cdActSubject";
+  const dueId = forcedType ? ("cd" + forcedType + "Due") : "cdActDue";
+  const subject = document.getElementById(subjectId).value.trim();
   if (!subject || !currentContactId) return;
-  const payload = { contact_id: currentContactId, activity_type: document.getElementById("cdActType").value, subject: subject, due_date: document.getElementById("cdActDue").value || null, author: "You" };
+  const type = forcedType || document.getElementById("cdActType").value;
+  const payload = { contact_id: currentContactId, activity_type: type, subject: subject, due_date: document.getElementById(dueId).value || null, author: "You" };
   await sb("activities", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
-  document.getElementById("cdActSubject").value = "";
-  document.getElementById("cdActDue").value = "";
+  document.getElementById(subjectId).value = "";
+  document.getElementById(dueId).value = "";
   loadContactActivities(currentContactId);
 }
 
@@ -1074,22 +1147,28 @@ async function addDealNote() {
   document.getElementById("ddNoteInput").value = "";
   loadDealNotes(currentDealId);
 }
-async function addDealActivity() {
-  const subject = document.getElementById("ddActSubject").value.trim();
+async function addDealActivity(forcedType) {
+  const subjectId = forcedType ? ("dd" + forcedType + "Subject") : "ddActSubject";
+  const dueId = forcedType ? ("dd" + forcedType + "Due") : "ddActDue";
+  const subject = document.getElementById(subjectId).value.trim();
   if (!subject || !currentDealId) return;
-  const payload = { deal_id: currentDealId, activity_type: document.getElementById("ddActType").value, subject: subject, due_date: document.getElementById("ddActDue").value || null, author: "You" };
+  const type = forcedType || document.getElementById("ddActType").value;
+  const payload = { deal_id: currentDealId, activity_type: type, subject: subject, due_date: document.getElementById(dueId).value || null, author: "You" };
   await sb("activities", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
-  document.getElementById("ddActSubject").value = "";
-  document.getElementById("ddActDue").value = "";
+  document.getElementById(subjectId).value = "";
+  document.getElementById(dueId).value = "";
   loadDealActivities(currentDealId);
 }
 
 function switchDetailTab(scope, tab) {
   const prefix = scope === "contact" ? "cd" : "dd";
-  document.getElementById(prefix + "NotesPane").style.display = tab === "notes" ? "block" : "none";
-  document.getElementById(prefix + "ActivitiesPane").style.display = tab === "activities" ? "block" : "none";
+  const panes = { notes: "Notes", activities: "Activities", call: "Call", email: "Email", file: "File", document: "Document" };
+  Object.keys(panes).forEach(function(key){
+    var el = document.getElementById(prefix + panes[key] + "Pane");
+    if (el) el.style.display = (tab === key) ? "block" : "none";
+  });
   const container = event.currentTarget.parentElement;
-  container.querySelectorAll(".tab").forEach(function(el){ el.classList.remove("active"); });
+  container.querySelectorAll(".quick-tab").forEach(function(el){ el.classList.remove("active"); });
   event.currentTarget.classList.add("active");
 }
 
