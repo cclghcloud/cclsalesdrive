@@ -172,7 +172,7 @@ tr:last-child td { border-bottom: none; }
 </div>
 <div class="table-wrapper">
 <table>
-<thead><tr><th>Deal Title</th><th>Person</th><th>Organization</th><th>Stage</th><th>Value</th><th>Owner</th><th>Assigned To</th><th>Actions</th></tr></thead>
+<thead><tr><th>Deal Title</th><th>Person</th><th>Organization</th><th>Stage</th><th>Value</th><th>Owner</th><th>Actions</th></tr></thead>
 <tbody id="dealsTable"><tr><td colspan="6" class="empty-state">Loading...</td></tr></tbody>
 </table>
 </div>
@@ -281,7 +281,7 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-field"><strong>Stage:</strong><span id="ddStage"></span></div>
 <div class="detail-field"><strong>Value:</strong><span id="ddValue"></span></div>
 <div class="detail-field"><strong>Owner:</strong><span id="ddOwner"></span></div>
-<div class="detail-field"><strong>Assigned To:</strong><span id="ddAssignedTo"></span></div>
+
 <div class="detail-field"><strong>Person:</strong><span id="ddPerson"></span></div>
 <div class="detail-field"><strong>Organization:</strong><span id="ddOrg"></span></div>
 <div class="detail-field"><strong>Email:</strong><span id="ddEmail"></span></div>
@@ -363,7 +363,7 @@ tr:last-child td { border-bottom: none; }
 </select></div>
 <div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="dealValue" type="number"></div>
 <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="dealOwner"></div>
-<div class="form-group admin-only" id="dealAssignWrap" style="display:none;"><label class="form-label">Assign To</label><select class="form-select" id="dealAssignTo"><option value="">Unassigned</option></select></div>
+
 <div class="form-actions">
 <button class="btn" onclick="submitDeal()">Save Deal</button>
 <button class="btn btn-secondary" onclick="closeModal('dealModal')">Cancel</button>
@@ -384,7 +384,6 @@ tr:last-child td { border-bottom: none; }
 </select></div>
 <div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="editDealValue" type="number"></div>
 <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="editDealOwner"></div>
-<div class="form-group admin-only" id="editDealAssignWrap" style="display:none;"><label class="form-label">Assign To</label><select class="form-select" id="editDealAssignTo"><option value="">Unassigned</option></select></div>
 <div class="form-actions">
 <button class="btn" onclick="submitEditDeal()">Save Changes</button>
 <button class="btn btn-secondary" onclick="closeModal('editDealModal')">Cancel</button>
@@ -535,7 +534,7 @@ async function showApp() {
   document.getElementById("headerUserInfo").textContent = currentProfile.email + " (" + currentProfile.role + ")";
   var isAdmin = currentProfile.role === "admin";
   document.querySelectorAll(".admin-only").forEach(function (el) { el.style.display = isAdmin ? "" : "none"; });
-  if (isAdmin) { populateAssigneeDropdowns(); }
+  
   loadDashboard();
 }
 
@@ -595,15 +594,6 @@ async function submitAuth() {
   }
 }
 
-async function populateAssigneeDropdowns() {
-  const res = await sb("profiles?select=id,email&order=email.asc");
-  const rows = await res.json();
-  const opts = '<option value="">Unassigned</option>' + rows.map(function (p) { return '<option value="' + p.id + '">' + escapeHtml(p.email) + '</option>'; }).join("");
-  ["dealAssignTo", "editDealAssignTo"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) { var cur = el.value; el.innerHTML = opts; el.value = cur; }
-  });
-}
 
 function switchView(view) {
   document.querySelectorAll(".view-section").forEach(function(el){ el.classList.remove("active"); });
@@ -699,8 +689,8 @@ async function loadDeals() {
   const range = res.headers.get("content-range");
   const total = range ? Number(range.split("/")[1]) : rows.length;
   document.getElementById("dealsTable").innerHTML = rows.map(function(d) {
-    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + stageBadge(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td><td>" + ((d.profiles && d.profiles.email) ? escapeHtml(d.profiles.email) : "Unassigned") + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openDealDetail(" + d.id + ")\">View</button> <button class=\"btn btn-secondary btn-small\" onclick=\"openEditDeal(" + d.id + ")\">Edit</button></td></tr>";
-  }).join("") || '<tr><td colspan="8" class="empty-state">No deals found</td></tr>';
+    return "<tr><td>" + escapeHtml(d.deal_title) + "</td><td>" + escapeHtml(d.person_name) + "</td><td>" + escapeHtml(d.organization_name) + "</td><td>" + stageBadge(d.pipeline_stage) + "</td><td>" + fmtMoney(d.deal_value) + "</td><td>" + escapeHtml(d.deal_owner) + "</td><td><button class=\"btn btn-secondary btn-small\" onclick=\"openDealDetail(" + d.id + ")\">View</button> <button class=\"btn btn-secondary btn-small\" onclick=\"openEditDeal(" + d.id + ")\">Edit</button></td></tr>";
+  }).join("") || '<tr><td colspan="7" class="empty-state">No deals found</td></tr>';
   renderPagination("dealsPagination", dealsPage, total, function(p){ dealsPage = p; loadDeals(); });
 }
 
@@ -749,13 +739,13 @@ async function submitDeal() {
     pipeline_stage: document.getElementById("dealStage").value,
     deal_value: parseFloat(document.getElementById("dealValue").value) || null,
     deal_owner: document.getElementById("dealOwner").value.trim() || null,
-    assigned_to: (window.currentProfile && currentProfile.role === "admin") ? (document.getElementById("dealAssignTo").value || null) : (window.currentProfile ? currentProfile.id : null)
+    assigned_to: (window.currentProfile && currentProfile.role === "admin") ? null : (window.currentProfile ? currentProfile.id : null)
   };
   msg.textContent = "Saving...";
   const res = await sb("deals", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
   if (res.ok) {
     closeModal("dealModal");
-    ["dealTitle","dealPerson","dealOrg","dealValue","dealOwner","dealAssignTo"].forEach(function(id){ document.getElementById(id).value = ""; });
+    ["dealTitle","dealPerson","dealOrg","dealValue","dealOwner"].forEach(function(id){ document.getElementById(id).value = ""; });
     msg.textContent = "";
     loadDashboard();
     if (document.getElementById("deals").classList.contains("active")) loadDeals();
@@ -768,7 +758,7 @@ let editingDealId = null;
 
 async function openEditDeal(id) {
   editingDealId = id;
-  const res = await sb("deals?id=eq." + id + "&select=id,deal_title,person_name,organization_name,pipeline_stage,deal_value,deal_owner,assigned_to");
+  const res = await sb("deals?id=eq." + id + "&select=id,deal_title,person_name,organization_name,pipeline_stage,deal_value,deal_owner");
   const rows = await res.json();
   if (!rows.length) return;
   const d = rows[0];
@@ -778,7 +768,7 @@ async function openEditDeal(id) {
   document.getElementById("editDealStage").value = d.pipeline_stage || "Lead";
   document.getElementById("editDealValue").value = d.deal_value != null ? d.deal_value : "";
   document.getElementById("editDealOwner").value = d.deal_owner || "";
-  if (document.getElementById("editDealAssignTo")) { document.getElementById("editDealAssignTo").value = d.assigned_to || ""; }
+  
   document.getElementById("editDealFormMsg").textContent = "";
   openModal("editDealModal");
 }
@@ -794,9 +784,9 @@ async function submitEditDeal() {
     pipeline_stage: document.getElementById("editDealStage").value,
     deal_value: parseFloat(document.getElementById("editDealValue").value) || null,
     deal_owner: document.getElementById("editDealOwner").value.trim() || null,
-    assigned_to: (window.currentProfile && currentProfile.role === "admin") ? (document.getElementById("editDealAssignTo").value || null) : undefined
+    
   };
-  if (payload.assigned_to === undefined) delete payload.assigned_to;
+  
   msg.textContent = "Saving...";
   const res = await sb("deals?id=eq." + editingDealId, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
   if (res.ok) {
@@ -988,7 +978,7 @@ async function openDealDetail(id) {
   if (ddhf) { Array.from(ddhf.children).forEach(function(c,i){ c.classList.toggle("active", i===0); }); }
   showDetail("dealDetail");
   document.getElementById("viewTitle").textContent = "Deal Details";
-  const res = await sb("deals?id=eq." + id + "&select=*,profiles(email)");
+  const res = await sb("deals?id=eq." + id + "&select=*");
   const rows = await res.json();
   if (!rows.length) return;
   const d = rows[0];
@@ -998,7 +988,7 @@ async function openDealDetail(id) {
   document.getElementById("ddAvatar").textContent = initials(d.person_name || d.deal_title);
   document.getElementById("ddValue").textContent = fmtMoney(d.deal_value);
   document.getElementById("ddOwner").textContent = d.deal_owner || dash;
-  document.getElementById("ddAssignedTo").textContent = (d.profiles && d.profiles.email) || "Unassigned";
+  
   document.getElementById("ddPerson").textContent = d.person_name || dash;
   document.getElementById("ddOrg").textContent = d.organization_name || dash;
   document.getElementById("ddEmail").textContent = d.email || dash;
