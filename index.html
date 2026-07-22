@@ -139,7 +139,7 @@ tr:last-child td { border-bottom: none; }
 <div class="nav-item active" onclick="switchView('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>Dashboard</div>
 <div class="nav-item" id="navDeals" onclick="switchView('deals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.5-1.5-2.5-3-2.5s-3 1-3 2.2c0 3 6 1.3 6 4.3 0 1.4-1.5 2.5-3 2.5s-3-1-3-2.5"/></svg>Deals</div>
 <div class="nav-item" id="navContacts" onclick="switchView('contacts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>Contacts</div>
-<div class="nav-item" onclick="switchView('activities')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Activities</div>
+<div class="nav-item" onclick="switchView('activities')" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Activities</div>
 <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
 <div class="nav-item" onclick="switchView('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M4 15l4-5 4 3 5-7"/></svg>Reports</div>
 <div class="nav-item" onclick="switchView('export')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v10m0 0l-3.5-3.5M12 14l3.5-3.5M4 18h16"/></svg>Export</div>
@@ -286,9 +286,9 @@ tr:last-child td { border-bottom: none; }
 <button class="btn btn-secondary" onclick="backToList('deals')" style="margin-bottom: 1rem;">&larr; Back to Deals</button>
 <div class="detail-grid">
 <div class="detail-col-left">
-<div class="detail-card">
-<div class="detail-profile"><div class="avatar" id="ddAvatar">?</div><div><h2 id="ddTitle"></h2></div></div>
-<div class="detail-field"><strong>Stage:</strong><span id="ddStage"></span></div>
+<div class="detail-card" style="position:relative">
+<div class="detail-profile"><div class="avatar" id="ddAvatar">?</div><div><h2 id="ddTitle"></h2></div></div><button class="btn btn-secondary btn-small" onclick="openEditDeal(currentDealId)" title="Edit Deal" style="position:absolute;top:14px;right:14px;">✎ Edit</button>
+<div class="detail-field" style="display:none"><strong>Stage:</strong><span id="ddStage"></span></div>
 <div class="detail-field"><strong>Value:</strong><span id="ddValue"></span></div>
 <div class="detail-field"><strong>Owner:</strong><span id="ddOwner"></span></div>
 
@@ -367,7 +367,7 @@ tr:last-child td { border-bottom: none; }
 <div class="form-group"><label class="form-label">Deal Title</label><input class="form-input" id="dealTitle"></div>
 <div class="form-group"><label class="form-label">Person Name</label><input class="form-input" id="dealPerson"></div>
 <div class="form-group"><label class="form-label">Organization</label><input class="form-input" id="dealOrg"></div>
-<div class="form-group"><label class="form-label">Stage</label>
+<div class="form-group" style="display:none"><label class="form-label">Stage</label>
 <select class="form-select" id="dealStage">
 <option>Lead</option><option>MQL</option><option>SQL</option><option>SAL</option><option>Opportunity Created</option><option>Options Contract Sent</option><option>CLOSED-WON</option><option>CLOSED-LOST</option>
 </select></div>
@@ -388,12 +388,15 @@ tr:last-child td { border-bottom: none; }
 <div class="form-group"><label class="form-label">Deal Title</label><input class="form-input" id="editDealTitle"></div>
 <div class="form-group"><label class="form-label">Person Name</label><input class="form-input" id="editDealPerson"></div>
 <div class="form-group"><label class="form-label">Organization</label><input class="form-input" id="editDealOrg"></div>
-<div class="form-group"><label class="form-label">Stage</label>
+<div class="form-group" style="display:none"><label class="form-label">Stage</label>
 <select class="form-select" id="editDealStage">
 <option>Lead</option><option>MQL</option><option>SQL</option><option>SAL</option><option>Opportunity Created</option><option>Options Contract Sent</option><option>CLOSED-WON</option><option>CLOSED-LOST</option>
 </select></div>
 <div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="editDealValue" type="number"></div>
 <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="editDealOwner"></div>
+<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="editDealEmail"></div>
+<div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="editDealPhone"></div>
+<div class="form-group"><label class="form-label">Expected Close</label><input class="form-input" id="editDealClose" type="date"></div>
 <div class="form-actions">
 <button class="btn" onclick="submitEditDeal()">Save Changes</button>
 <button class="btn btn-secondary" onclick="closeModal('editDealModal')">Cancel</button>
@@ -690,7 +693,7 @@ function debouncedContactSearch() {
 
 async function loadDeals() {
   const q = document.getElementById("dealSearch").value.trim();
-  let path = "deals?select=id,deal_title,person_name,organization_name,pipeline_stage,deal_value,deal_owner&order=id.desc&limit=" + PAGE_SIZE + "&offset=" + (dealsPage * PAGE_SIZE);
+  let path = "deals?select=id,deal_title,person_name,organization_name,pipeline_stage,deal_value,deal_owner,email,phone,expected_close_date&order=id.desc&limit=" + PAGE_SIZE + "&offset=" + (dealsPage * PAGE_SIZE);
   if (q) {
     const term = encodeURIComponent("%" + q + "%");
     path += "&or=(deal_title.ilike." + term + ",person_name.ilike." + term + ",organization_name.ilike." + term + ")";
@@ -803,6 +806,9 @@ async function openEditDeal(id) {
   document.getElementById("editDealStage").value = d.pipeline_stage || "Lead";
   document.getElementById("editDealValue").value = d.deal_value != null ? d.deal_value : "";
   document.getElementById("editDealOwner").value = d.deal_owner || "";
+  document.getElementById("editDealEmail").value = d.email || "";
+  document.getElementById("editDealPhone").value = d.phone || "";
+  document.getElementById("editDealClose").value = d.expected_close_date || "";
   
   document.getElementById("editDealFormMsg").textContent = "";
   openModal("editDealModal");
@@ -819,6 +825,9 @@ async function submitEditDeal() {
     pipeline_stage: document.getElementById("editDealStage").value,
     deal_value: parseFloat(document.getElementById("editDealValue").value) || null,
     deal_owner: document.getElementById("editDealOwner").value.trim() || null,
+    email: document.getElementById("editDealEmail").value.trim() || null,
+    phone: document.getElementById("editDealPhone").value.trim() || null,
+    expected_close_date: document.getElementById("editDealClose").value || null,
     
   };
   
@@ -964,7 +973,7 @@ async function openContactDetail(id) {
     const dres = await sb("deals?select=id,deal_title,pipeline_stage,deal_value&order=id.desc&limit=25&or=(" + orFilters.join(",") + ")");
     const deals = await dres.json();
     document.getElementById("cdDeals").innerHTML = deals.map(function(d){
-      return '<div class="related-item" onclick="openDealDetail(' + d.id + ')"><span>' + escapeHtml(d.deal_title) + '</span>' + stageBadge(d.pipeline_stage) + '<span>' + fmtMoney(d.deal_value) + '</span></div>';
+      return '<div class="related-item" onclick="openDealDetail(' + d.id + ')"><span>' + escapeHtml(d.deal_title) + '</span><span>' + fmtMoney(d.deal_value) + '</span></div>';
     }).join("") || '<p class="empty-state">No related deals found</p>';
   } else {
     document.getElementById("cdDeals").innerHTML = '<p class="empty-state">No related deals found</p>';
