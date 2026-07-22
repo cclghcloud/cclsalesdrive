@@ -102,6 +102,22 @@ tr:last-child td { border-bottom: none; }
 .badge-type-task { background: #dcfce7; color: #15803d; }
 .badge-type-file { background: #f3e8ff; color: #9333ea; }
 .badge-type-document { background: #e0f2fe; color: #0369a1; }
+.contract-card { border: 1px solid #ebe9f5; border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 0.75rem; }
+.contract-card-header { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.contract-card-header .chevron { transition: transform 0.15s; flex-shrink: 0; width: 14px; height: 14px; color: #6b6880; }
+.contract-card-header .chevron.collapsed { transform: rotate(-90deg); }
+.contract-card-title { font-weight: 700; font-size: 14px; color: #16152a; flex: 1; }
+.contract-badge { background: #f1f0fa; color: #6b6880; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+.contract-menu-wrap { position: relative; }
+.contract-menu-btn { background: none; border: none; cursor: pointer; color: #6b6880; font-size: 16px; padding: 2px 6px; line-height: 1; }
+.contract-menu-dropdown { position: absolute; right: 0; top: 22px; background: #fff; border: 1px solid #ebe9f5; border-radius: 8px; box-shadow: 0 4px 12px rgba(16,24,40,0.08); z-index: 5; min-width: 120px; }
+.contract-menu-dropdown div { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #16152a; }
+.contract-menu-dropdown div:hover { background: #f5f4fa; }
+.contract-fields { margin-top: 0.85rem; display: flex; flex-direction: column; gap: 0.55rem; }
+.contract-field-row { display: flex; font-size: 13px; gap: 12px; }
+.contract-field-label { width: 130px; flex-shrink: 0; color: #6b6880; text-align: right; }
+.contract-field-value { color: #16152a; font-weight: 500; word-break: break-word; }
+.contract-section-divider { border-top: 1px solid #f1f0fa; margin: 0.85rem 0; }
 .badge-type-changelog { background: #f1f5f9; color: #64748b; }
 .detail-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.25rem; align-items: start; }
 .detail-col-left, .detail-col-right { display: flex; flex-direction: column; gap: 1.25rem; }
@@ -242,6 +258,13 @@ tr:last-child td { border-bottom: none; }
 <div class="detail-card">
 <h3 style="margin-top: 0;">Related Deals</h3>
 <div id="cdDeals" class="related-list"><p class="empty-state">Loading...</p></div>
+</div>
+<div class="detail-card">
+<div style="display:flex; align-items:center; justify-content:space-between;">
+<h3 style="margin-top: 0;">Contract Automation</h3>
+<button class="btn btn-secondary btn-small" onclick="openAddContract()">+ Add Contract</button>
+</div>
+<div id="cdContracts" class="related-list"><p class="empty-state">Loading...</p></div>
 </div>
 </div>
 <div class="detail-col-right">
@@ -469,6 +492,33 @@ tr:last-child td { border-bottom: none; }
 <div class="form-actions">
 <button class="btn" onclick="submitEditDeal()">Save Changes</button>
 <button class="btn btn-secondary" onclick="closeModal('editDealModal')">Cancel</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="contractModal">
+<div class="modal-content">
+<div class="modal-header"><span id="contractModalTitle">Add Contract</span><button class="modal-close" onclick="closeContractModal()">&times;</button></div>
+<div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="cf_first_name"></div>
+<div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="cf_last_name"></div>
+<div class="form-group"><label class="form-label">Street Address</label><input class="form-input" id="cf_street_address"></div>
+<div class="form-group"><label class="form-label">City</label><input class="form-input" id="cf_city"></div>
+<div class="form-group"><label class="form-label">State</label><input class="form-input" id="cf_state"></div>
+<div class="form-group"><label class="form-label">StateAbbr</label><input class="form-input" id="cf_state_abbr"></div>
+<div class="form-group"><label class="form-label">TrckZipcode</label><input class="form-input" id="cf_trck_zipcode"></div>
+<div class="form-group"><label class="form-label">Zipcode</label><input class="form-input" id="cf_zipcode"></div>
+<div class="form-group"><label class="form-label">Tract Contract</label><input class="form-input" id="cf_tract_contract"></div>
+<div class="form-group"><label class="form-label">Interest Rate</label><input class="form-input" id="cf_interest_rate"></div>
+<div class="form-group"><label class="form-label">County</label><input class="form-input" id="cf_county"></div>
+<div class="form-group"><label class="form-label">Tract</label><input class="form-input" id="cf_tract"></div>
+<div class="form-group"><label class="form-label">Lead Source</label><input class="form-input" id="cf_lead_source"></div>
+<div class="form-group"><label class="form-label">Message</label><input class="form-input" id="cf_message"></div>
+<div class="form-group"><label class="form-label">Message2</label><input class="form-input" id="cf_message2"></div>
+<div class="form-group"><label class="form-label">Hear About</label><input class="form-input" id="cf_hear_about"></div>
+<div class="form-group"><label class="form-label">Motivation Level</label><input class="form-input" id="cf_motivation_level"></div>
+<div class="form-actions">
+<button class="btn" onclick="submitContract()">Save Contract</button>
+<button class="btn btn-secondary" onclick="closeContractModal()">Cancel</button>
 </div>
 </div>
 </div>
@@ -1050,8 +1100,158 @@ async function openContactDetail(id) {
   }
   loadContactNotes(id);
   loadContactActivities(id);
+  loadContactContracts(id);
   document.getElementById("cdNoteInput").value = "";
 }
+
+const CONTRACT_FIELDS = [
+  ["first_name","First Name"],
+  ["last_name","Last Name"],
+  ["street_address","Street Address"],
+  ["city","City"],
+  ["state","State"],
+  ["state_abbr","StateAbbr"],
+  ["trck_zipcode","TrckZipcode"],
+  ["zipcode","Zipcode"],
+  ["tract_contract","Tract Contract"],
+  ["interest_rate","Interest Rate"],
+  ["county","County"],
+  ["tract","Tract"],
+  ["lead_source","Lead Source"],
+  ["message","Message"],
+  ["message2","Message2"],
+  ["hear_about","Hear About"],
+  ["motivation_level","Motivation Level"]
+];
+window.cdContractsData = [];
+window.cdContractsCollapsed = {};
+
+async function loadContactContracts(id) {
+  const res = await sb("contracts?contact_id=eq." + id + "&order=created_at.desc");
+  const rows = await res.json();
+  window.cdContractsData = rows;
+  renderContractsList();
+}
+
+function renderContractsList() {
+  const el = document.getElementById("cdContracts");
+  if (!el) return;
+  const rows = window.cdContractsData || [];
+  if (!rows.length) { el.innerHTML = '<p class="empty-state">No contracts yet</p>'; return; }
+  el.innerHTML = rows.map(renderContractCard).join("");
+}
+
+function renderContractCard(c) {
+  const filled = CONTRACT_FIELDS.filter(function(f){ var v = c[f[0]]; return v !== null && v !== undefined && String(v).trim() !== ""; });
+  const total = CONTRACT_FIELDS.length;
+  const collapsed = !!window.cdContractsCollapsed[c.id];
+  const boxKeys = ["first_name","last_name","street_address","city","state","state_abbr","trck_zipcode","zipcode","tract_contract","interest_rate"];
+  const extraKeys = ["county","tract","lead_source","message","message2","hear_about","motivation_level"];
+  function rowsFor(keys) {
+    return keys.map(function(k){
+      var label = CONTRACT_FIELDS.find(function(f){ return f[0] === k; })[1];
+      var v = c[k];
+      if (v === null || v === undefined || String(v).trim() === "") return "";
+      return '<div class="contract-field-row"><div class="contract-field-label">' + escapeHtml(label) + '</div><div class="contract-field-value">' + escapeHtml(String(v)) + '</div></div>';
+    }).join("");
+  }
+  const boxRows = rowsFor(boxKeys);
+  const extraRows = rowsFor(extraKeys);
+  const bodyStyle = collapsed ? ' style="display:none;"' : "";
+  return '<div class="contract-card">' +
+    '<div class="contract-card-header" onclick="toggleContractCard(' + c.id + ')">' +
+    '<svg class="chevron' + (collapsed ? " collapsed" : "") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+    '<div class="contract-card-title">Contract Automation</div>' +
+    '<div class="contract-badge">' + filled.length + "/" + total + '</div>' +
+    '<div class="contract-menu-wrap">' +
+    '<button class="contract-menu-btn" onclick="event.stopPropagation(); toggleContractMenu(' + c.id + ')">&#8942;</button>' +
+    '<div class="contract-menu-dropdown" id="contractMenu' + c.id + '" style="display:none;">' +
+    '<div onclick="event.stopPropagation(); openEditContract(' + c.id + ')">Edit</div>' +
+    '<div onclick="event.stopPropagation(); deleteContract(' + c.id + ')">Delete</div>' +
+    '</div>' +
+    '</div>' +
+    '</div>' +
+    '<div class="contract-fields" id="contractBody' + c.id + '"' + bodyStyle + '>' +
+    boxRows +
+    (extraRows ? '<div class="contract-section-divider"></div>' + extraRows : "") +
+    '</div>' +
+    '</div>';
+}
+
+function toggleContractCard(id) {
+  window.cdContractsCollapsed[id] = !window.cdContractsCollapsed[id];
+  renderContractsList();
+}
+
+function toggleContractMenu(id) {
+  var menu = document.getElementById("contractMenu" + id);
+  if (!menu) return;
+  var isOpen = menu.style.display === "block";
+  document.querySelectorAll(".contract-menu-dropdown").forEach(function(m){ m.style.display = "none"; });
+  menu.style.display = isOpen ? "none" : "block";
+}
+
+async function deleteContract(id) {
+  toggleContractMenu(id);
+  if (!confirm("Delete this contract record? This cannot be undone.")) return;
+  await sb("contracts?id=eq." + id, { method: "DELETE" });
+  loadContactContracts(currentContactId);
+}
+
+function openAddContract() {
+  window.editingContractId = null;
+  fillContractForm({});
+  document.getElementById("contractModalTitle").textContent = "Add Contract";
+  document.getElementById("contractModal").classList.add("active");
+}
+
+function openEditContract(id) {
+  toggleContractMenu(id);
+  const c = (window.cdContractsData || []).find(function(x){ return x.id === id; });
+  if (!c) return;
+  window.editingContractId = id;
+  fillContractForm(c);
+  document.getElementById("contractModalTitle").textContent = "Edit Contract";
+  document.getElementById("contractModal").classList.add("active");
+}
+
+function fillContractForm(c) {
+  CONTRACT_FIELDS.forEach(function(f){
+    var el = document.getElementById("cf_" + f[0]);
+    if (el) el.value = c[f[0]] != null ? c[f[0]] : "";
+  });
+}
+
+function closeContractModal() {
+  document.getElementById("contractModal").classList.remove("active");
+}
+
+async function submitContract() {
+  const payload = {};
+  CONTRACT_FIELDS.forEach(function(f){
+    var el = document.getElementById("cf_" + f[0]);
+    var v = el ? el.value.trim() : "";
+    if (f[0] === "interest_rate" || f[0] === "motivation_level") {
+      payload[f[0]] = v === "" ? null : Number(v);
+    } else {
+      payload[f[0]] = v === "" ? null : v;
+    }
+  });
+  if (window.editingContractId) {
+    await sb("contracts?id=eq." + window.editingContractId, { method: "PATCH", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
+  } else {
+    payload.contact_id = currentContactId;
+    await sb("contracts", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(payload) });
+  }
+  closeContractModal();
+  loadContactContracts(currentContactId);
+}
+
+document.addEventListener("click", function(e){
+  if (!e.target.closest(".contract-menu-wrap")) {
+    document.querySelectorAll(".contract-menu-dropdown").forEach(function(m){ m.style.display = "none"; });
+  }
+});
 
 async function loadContactNotes(id) {
   const res = await sb("notes?contact_id=eq." + id + "&order=created_at.desc");
